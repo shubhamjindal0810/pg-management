@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+// Login Schema
+export const loginSchema = z.object({
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit phone number'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+
 // Property Schema
 export const propertySchema = z.object({
   name: z.string().min(2, 'Property name is required'),
