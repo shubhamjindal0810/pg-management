@@ -197,21 +197,8 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
             <h3 className="mb-4 text-xl font-semibold">Available Beds</h3>
             <div className="grid gap-4 md:grid-cols-2">
               {room.beds.map((bed) => {
-                const bedImages = (bed.images as string[]) || [];
-                const bedImage = bedImages[0] || allImages[0] || null;
                 return (
                   <Card key={bed.id} className="overflow-hidden">
-                    {bedImage && (
-                      <div className="relative h-48 w-full">
-                        <Image
-                          src={bedImage}
-                          alt={`Bed ${bed.bedNumber}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      </div>
-                    )}
                     <CardContent className="p-4">
                       <div className="space-y-2">
                         <h4 className="font-semibold">Bed {bed.bedNumber}</h4>

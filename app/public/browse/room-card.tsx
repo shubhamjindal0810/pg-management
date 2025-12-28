@@ -60,9 +60,10 @@ export function RoomCard({ room }: RoomCardProps) {
           : '4+ sharing';
 
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
-      {/* Image Gallery */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+    <Link href={`/public/rooms/${room.id}`} className="block">
+      <Card className="group overflow-hidden transition-shadow hover:shadow-lg cursor-pointer">
+        {/* Image Gallery */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {primaryImage ? (
           <img
             src={primaryImage}
@@ -193,11 +194,10 @@ export function RoomCard({ room }: RoomCardProps) {
         </div>
 
         {/* Action */}
-        <Link href={`/public/rooms/${room.id}`} className="block">
-          <Button className="w-full">View Details & Book</Button>
-        </Link>
+        <Button className="w-full">View Details & Book</Button>
       </CardContent>
     </Card>
+    </Link>
   );
 }
 

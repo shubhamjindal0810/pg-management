@@ -11,6 +11,7 @@ export async function createBooking(data: {
   requestedCheckin: string;
   durationMonths?: number;
   durationDays?: number;
+  expectedCheckout?: string;
   acSelected?: boolean;
   breakfastSelected?: boolean;
   lunchSelected?: boolean;
@@ -53,6 +54,7 @@ export async function createBooking(data: {
       phone: data.phone,
       requestedCheckin: new Date(data.requestedCheckin),
       durationMonths: data.durationMonths || (data.durationDays ? Math.ceil(data.durationDays / 30) : 1),
+      expectedCheckout: data.expectedCheckout ? new Date(data.expectedCheckout) : null,
       acSelected: data.acSelected || false,
       breakfastSelected: data.breakfastSelected || false,
       lunchSelected: data.lunchSelected || false,

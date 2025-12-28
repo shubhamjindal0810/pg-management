@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,7 @@ interface BrowseFiltersProps {
     hasAc?: boolean;
     hasBalcony?: boolean;
     checkInDate?: string;
+    expectedCheckout?: string;
     maxRent?: number;
   };
   propertyAmenities: string[];
@@ -39,35 +40,49 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
     hasAc: initialFilters.hasAc ?? false,
     hasBalcony: initialFilters.hasBalcony ?? false,
     checkInDate: initialFilters.checkInDate || '',
+    expectedCheckout: initialFilters.expectedCheckout || '',
     maxRent: initialFilters.maxRent || 50000,
   });
 
+  // Apply filters in realtime with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      startTransition(() => {
+        const params = new URLSearchParams();
+
+        if (filters.hasAttachedBath) {
+          params.set('hasAttachedBath', 'true');
+        }
+        if (filters.roomType && filters.roomType !== 'all') {
+          params.set('roomType', filters.roomType);
+        }
+        if (filters.hasAc) {
+          params.set('hasAc', 'true');
+        }
+        if (filters.hasBalcony) {
+          params.set('hasBalcony', 'true');
+        }
+        if (filters.checkInDate) {
+          params.set('checkInDate', filters.checkInDate);
+        }
+        if (filters.expectedCheckout) {
+          params.set('expectedCheckout', filters.expectedCheckout);
+        }
+        if (filters.maxRent && filters.maxRent < 50000) {
+          params.set('maxRent', filters.maxRent.toString());
+        }
+
+        router.push(`/public/browse?${params.toString()}`);
+        router.refresh();
+      });
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timeoutId);
+  }, [filters, router]);
+
   const applyFilters = () => {
-    startTransition(() => {
-      const params = new URLSearchParams();
-
-      if (filters.hasAttachedBath) {
-        params.set('hasAttachedBath', 'true');
-      }
-      if (filters.roomType && filters.roomType !== 'all') {
-        params.set('roomType', filters.roomType);
-      }
-      if (filters.hasAc) {
-        params.set('hasAc', 'true');
-      }
-      if (filters.hasBalcony) {
-        params.set('hasBalcony', 'true');
-      }
-      if (filters.checkInDate) {
-        params.set('checkInDate', filters.checkInDate);
-      }
-      if (filters.maxRent && filters.maxRent < 50000) {
-        params.set('maxRent', filters.maxRent.toString());
-      }
-
-      router.push(`/public/browse?${params.toString()}`);
-      router.refresh();
-    });
+    // Filters are now applied automatically via useEffect
+    // This function is kept for backward compatibility but can be removed
   };
 
   const clearFilters = () => {
@@ -77,6 +92,7 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
       hasAc: false,
       hasBalcony: false,
       checkInDate: '',
+      expectedCheckout: '',
       maxRent: 50000,
     });
     router.push('/public/browse');
@@ -96,8 +112,39 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
             type="date"
             min={new Date().toISOString().split('T')[0]}
             value={filters.checkInDate}
-            onChange={(e) => setFilters({ ...filters, checkInDate: e.target.value })}
+            onChange={(e) => {
+              const selectedDate = e.target.value;
+              const today = new Date().toISOString().split('T')[0];
+              if (selectedDate >= today) {
+                setFilters({ ...filters, checkInDate: selectedDate });
+                // Reset expected checkout if it's before the new check-in date
+                if (filters.expectedCheckout && filters.expectedCheckout < selectedDate) {
+                  setFilters({ ...filters, checkInDate: selectedDate, expectedCheckout: '' });
+                }
+              }
+            }}
           />
+        </div>
+
+        {/* Expected Checkout Date */}
+        <div className="space-y-2">
+          <Label htmlFor="expectedCheckout">Expected Checkout Date</Label>
+          <Input
+            id="expectedCheckout"
+            type="date"
+            min={filters.checkInDate || new Date().toISOString().split('T')[0]}
+            value={filters.expectedCheckout}
+            onChange={(e) => {
+              const selectedDate = e.target.value;
+              const minDate = filters.checkInDate || new Date().toISOString().split('T')[0];
+              if (selectedDate >= minDate) {
+                setFilters({ ...filters, expectedCheckout: selectedDate });
+              }
+            }}
+          />
+          <p className="text-xs text-muted-foreground">
+            Show rooms available for your entire stay duration
+          </p>
         </div>
 
         {/* Room Type */}
@@ -112,12 +159,15 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="single">Single (1 bed)</SelectItem>
-              <SelectItem value="double">Double (2 beds)</SelectItem>
-              <SelectItem value="triple">Triple (3 beds)</SelectItem>
-              <SelectItem value="dormitory">Dormitory (4+ beds)</SelectItem>
+              <SelectItem value="single">Single (all beds available)</SelectItem>
+              <SelectItem value="double">Double (2 beds, at least 1 available)</SelectItem>
+              <SelectItem value="triple">Triple (3 beds, at least 1 available)</SelectItem>
+              <SelectItem value="dormitory">Dormitory (4+ beds, at least 1 available)</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            Filter by room type and bed availability
+          </p>
         </div>
 
         {/* Features */}
@@ -171,13 +221,13 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button onClick={applyFilters} className="flex-1" loading={isPending} disabled={isPending}>
-            Apply Filters
-          </Button>
-          <Button onClick={clearFilters} variant="outline" disabled={isPending}>
-            Clear
+          <Button onClick={clearFilters} variant="outline" className="w-full" disabled={isPending}>
+            Clear All Filters
           </Button>
         </div>
+        {isPending && (
+          <p className="text-xs text-center text-muted-foreground">Updating results...</p>
+        )}
       </CardContent>
     </Card>
   );

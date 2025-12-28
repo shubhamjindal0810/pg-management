@@ -9,6 +9,7 @@ async function getAvailableRooms(filters?: {
   hasAc?: boolean;
   hasBalcony?: boolean;
   checkInDate?: string;
+  expectedCheckout?: string;
   maxRent?: number;
 }) {
   const rooms = await db.room.findMany({
@@ -17,9 +18,7 @@ async function getAvailableRooms(filters?: {
       ...(filters?.hasAttachedBath !== undefined && {
         hasAttachedBath: filters.hasAttachedBath,
       }),
-      ...(filters?.roomType && {
-        roomType: filters.roomType,
-      }),
+      // Don't filter by roomType here - we'll filter by available bed count instead
       ...(filters?.hasAc !== undefined && {
         hasAc: filters.hasAc,
       }),
@@ -43,9 +42,6 @@ async function getAvailableRooms(filters?: {
         },
       },
       beds: {
-        where: {
-          status: 'AVAILABLE',
-        },
         include: {
           bookings: {
             where: {
@@ -67,28 +63,70 @@ async function getAvailableRooms(filters?: {
     ],
   });
 
-  // Filter out rooms that have no available beds for the requested check-in date
-  if (filters?.checkInDate) {
-    const checkInDate = new Date(filters.checkInDate);
-    return rooms.filter((room) => {
-      // Check if room has at least one bed available for the requested date
-      return room.beds.some((bed) => {
-        // Check if bed is not booked for the requested check-in date
-        return !bed.bookings.some((booking) => {
-          const bookingCheckIn = new Date(booking.requestedCheckin);
-          const bookingCheckOut = new Date(
-            new Date(booking.requestedCheckin).setMonth(
-              booking.requestedCheckin.getMonth() + booking.durationMonths
-            )
-          );
-          return checkInDate >= bookingCheckIn && checkInDate < bookingCheckOut;
-        });
-      });
-    });
-  }
+  // Filter rooms based on available beds for the requested date range and room type
+  const checkInDate = filters?.checkInDate ? new Date(filters.checkInDate) : null;
+  const expectedCheckout = filters?.expectedCheckout ? new Date(filters.expectedCheckout) : null;
 
-  // Filter out rooms with no available beds
-  return rooms.filter((room) => room.beds.length > 0);
+  return rooms.filter((room) => {
+    const totalBeds = room.beds.length;
+    
+    // Get available beds for the requested date range
+    const availableBeds = room.beds.filter((bed) => {
+      // Bed must be AVAILABLE status
+      if (bed.status !== 'AVAILABLE') {
+        return false;
+      }
+
+      // Check if bed is not booked during the requested stay period
+      if (checkInDate || expectedCheckout) {
+        const isBooked = bed.bookings.some((booking) => {
+          const bookingCheckIn = new Date(booking.requestedCheckin);
+          let bookingCheckOut: Date;
+          
+          // Calculate checkout date from durationMonths (expectedCheckout not yet in DB)
+          bookingCheckOut = new Date(bookingCheckIn);
+          bookingCheckOut.setMonth(bookingCheckOut.getMonth() + booking.durationMonths);
+          
+          // If both check-in and checkout dates are provided, check for overlap
+          if (checkInDate && expectedCheckout) {
+            // Check if the requested stay overlaps with any existing booking
+            return (checkInDate < bookingCheckOut && expectedCheckout > bookingCheckIn);
+          }
+          // If only check-in date is provided, check if it falls within any booking
+          else if (checkInDate) {
+            return checkInDate >= bookingCheckIn && checkInDate < bookingCheckOut;
+          }
+          // If only checkout date is provided, check if it falls within any booking
+          else if (expectedCheckout) {
+            return expectedCheckout > bookingCheckIn && expectedCheckout <= bookingCheckOut;
+          }
+          
+          return false;
+        });
+        return !isBooked;
+      }
+      // If no date filter, bed is available if status is AVAILABLE
+      return true;
+    });
+
+    // Apply room type filter logic
+    if (filters?.roomType === 'single') {
+      // Single: shows rooms where all beds are available (regardless of total bed count)
+      return availableBeds.length === totalBeds && totalBeds > 0;
+    } else if (filters?.roomType === 'double') {
+      // Double: shows rooms with a total of 2 beds where at least 1 is available
+      return totalBeds === 2 && availableBeds.length >= 1;
+    } else if (filters?.roomType === 'triple') {
+      // Triple: shows rooms with a total of 3 beds, where at least 1 is available
+      return totalBeds === 3 && availableBeds.length >= 1;
+    } else if (filters?.roomType === 'dormitory') {
+      // Dormitory: shows rooms with at least 4 total beds where at least 1 is available
+      return totalBeds >= 4 && availableBeds.length >= 1;
+    }
+
+    // If no room type filter, show rooms with at least one available bed
+    return availableBeds.length > 0;
+  });
 }
 
 async function getProperties() {
@@ -111,6 +149,7 @@ export default async function BrowsePage({
     hasAc?: string;
     hasBalcony?: string;
     checkInDate?: string;
+    expectedCheckout?: string;
     maxRent?: string;
   }>;
 }) {
@@ -122,6 +161,7 @@ export default async function BrowsePage({
     hasAc: params.hasAc === 'true' ? true : undefined,
     hasBalcony: params.hasBalcony === 'true' ? true : undefined,
     checkInDate: params.checkInDate,
+    expectedCheckout: params.expectedCheckout,
     maxRent: params.maxRent ? parseFloat(params.maxRent) : undefined,
   };
 

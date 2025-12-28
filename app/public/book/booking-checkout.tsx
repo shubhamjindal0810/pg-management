@@ -77,6 +77,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
   const [bookingType, setBookingType] = useState<'monthly' | 'daily'>('monthly');
   const [durationMonths, setDurationMonths] = useState(1);
   const [durationDays, setDurationDays] = useState(1);
+  const [expectedCheckout, setExpectedCheckout] = useState('');
 
   const propertyImages = (room.property.images as string[]) || [];
   const primaryImage = propertyImages[0] || '/placeholder-room.jpg';
@@ -177,6 +178,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -184,10 +186,13 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
       email: '',
       phone: '',
       requestedCheckin: new Date().toISOString().split('T')[0],
+      expectedCheckout: '',
       advanceAmount: '',
       notes: '',
     },
   });
+
+  const requestedCheckin = watch('requestedCheckin');
 
   const toggleBed = (bedId: string) => {
     if (selectedBedIds.includes(bedId)) {
@@ -213,6 +218,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
         requestedCheckin: data.requestedCheckin,
         durationMonths: bookingType === 'monthly' ? durationMonths : undefined,
         durationDays: bookingType === 'daily' ? durationDays : undefined,
+        expectedCheckout: expectedCheckout || undefined,
         acSelected: acSelected && room.hasAc && bookingType === 'monthly',
         breakfastSelected: breakfastSelected && room.property.breakfastEnabled,
         lunchSelected: lunchSelected && room.property.lunchEnabled,
@@ -507,8 +513,28 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     id="requestedCheckin"
                     type="date"
                     min={new Date().toISOString().split('T')[0]}
-                    {...register('requestedCheckin', { required: 'Check-in date is required' })}
+                    {...register('requestedCheckin', {
+                      required: 'Check-in date is required',
+                      validate: (value) => {
+                        const today = new Date().toISOString().split('T')[0];
+                        if (value < today) {
+                          return 'Check-in date cannot be in the past';
+                        }
+                        return true;
+                      },
+                    })}
                     error={errors.requestedCheckin?.message}
+                    onChange={(e) => {
+                      const selectedDate = e.target.value;
+                      const today = new Date().toISOString().split('T')[0];
+                      if (selectedDate >= today) {
+                        register('requestedCheckin').onChange(e);
+                        // Reset expected checkout if it's before the new check-in date
+                        if (expectedCheckout && expectedCheckout < selectedDate) {
+                          setExpectedCheckout('');
+                        }
+                      }
+                    }}
                   />
                 </div>
 
@@ -537,21 +563,46 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
               </div>
               
               {bookingType === 'monthly' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="durationMonths">Duration (Months) *</Label>
-                  <select
-                    id="durationMonths"
-                    value={durationMonths}
-                    onChange={(e) => setDurationMonths(parseInt(e.target.value))}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="1">1 Month</option>
-                    <option value="2">2 Months</option>
-                    <option value="3">3 Months</option>
-                    <option value="6">6 Months</option>
-                    <option value="12">12 Months</option>
-                  </select>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="durationMonths">Duration (Months) *</Label>
+                    <select
+                      id="durationMonths"
+                      value={durationMonths}
+                      onChange={(e) => setDurationMonths(parseInt(e.target.value))}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="1">1 Month</option>
+                      <option value="2">2 Months</option>
+                      <option value="3">3 Months</option>
+                      <option value="6">6 Months</option>
+                      <option value="12">12 Months</option>
+                    </select>
+                    <p className="text-xs text-muted-foreground">
+                      Note: Payment is for the first month only. Subsequent months will be billed monthly.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expectedCheckout">Expected Checkout Date (Optional)</Label>
+                    <Input
+                      id="expectedCheckout"
+                      type="date"
+                      min={requestedCheckin || new Date().toISOString().split('T')[0]}
+                      value={expectedCheckout}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        const minDate = requestedCheckin || new Date().toISOString().split('T')[0];
+                        if (selectedDate >= minDate) {
+                          setExpectedCheckout(selectedDate);
+                        }
+                      }}
+                      {...register('expectedCheckout')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your expected checkout date. This helps us plan better and show availability.
+                    </p>
+                  </div>
+                </>
               ) : (
                 <div className="space-y-2">
                   <Label htmlFor="durationDays">Duration (Days) *</Label>

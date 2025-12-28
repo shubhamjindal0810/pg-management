@@ -337,6 +337,7 @@ model Booking {
   // Booking Details
   requestedCheckin DateTime @map("requested_checkin")
   durationMonths   Int      @default(1) @map("duration_months")
+  expectedCheckout DateTime? @map("expected_checkout") // Expected checkout date (user-provided)
 
   // AC Option (if room has AC)
   acSelected Boolean @default(false) @map("ac_selected") // User selected AC option

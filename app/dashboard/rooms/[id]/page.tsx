@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/utils';
 import { DeleteRoomDialog } from './delete-dialog';
+import { OccupancyCalendar } from './occupancy-calendar';
 
 async function getRoom(id: string) {
   const room = await db.room.findUnique({
@@ -30,6 +31,18 @@ async function getRoom(id: string) {
             where: { status: 'ACTIVE' },
             include: {
               user: { select: { name: true } },
+            },
+          },
+          bookings: {
+            where: {
+              status: { in: ['approved', 'pending'] },
+            },
+            select: {
+              id: true,
+              requestedCheckin: true,
+              expectedCheckout: true,
+              durationMonths: true,
+              status: true,
             },
           },
         },
@@ -144,6 +157,27 @@ export default async function RoomDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Date-wise Occupancy */}
+      <OccupancyCalendar
+        beds={room.beds.map((bed) => ({
+          id: bed.id,
+          bedNumber: bed.bedNumber,
+          status: bed.status,
+          tenants: bed.tenants.map((t) => ({
+            checkInDate: t.checkInDate,
+            expectedCheckout: t.expectedCheckout,
+            user: { name: t.user.name },
+          })),
+          bookings: bed.bookings.map((b) => ({
+            id: b.id,
+            requestedCheckin: b.requestedCheckin,
+            expectedCheckout: b.expectedCheckout,
+            durationMonths: b.durationMonths,
+            status: b.status,
+          })),
+        }))}
+      />
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Room Details */}
