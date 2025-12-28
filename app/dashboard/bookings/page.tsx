@@ -29,6 +29,21 @@ async function getBookings() {
           },
         },
       },
+      bookingBeds: {
+        include: {
+          bed: {
+            include: {
+              room: {
+                include: {
+                  property: {
+                    select: { name: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -121,11 +136,29 @@ export default async function BookingsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <p>
-                            {booking.bed.room.property.name} - Room{' '}
-                            {booking.bed.room.roomNumber}
-                          </p>
-                          <p className="text-muted-foreground">Bed {booking.bed.bedNumber}</p>
+                          {booking.bed ? (
+                            <>
+                              <p>
+                                {booking.bed.room.property.name} - Room{' '}
+                                {booking.bed.room.roomNumber}
+                              </p>
+                              <p className="text-muted-foreground">Bed {booking.bed.bedNumber}</p>
+                            </>
+                          ) : booking.bookingBeds && booking.bookingBeds.length > 0 ? (
+                            <>
+                              <p>
+                                {booking.bookingBeds[0].bed.room.property.name} - Room{' '}
+                                {booking.bookingBeds[0].bed.room.roomNumber}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {booking.bookingBeds.length === 1
+                                  ? `Bed ${booking.bookingBeds[0].bed.bedNumber}`
+                                  : `${booking.bookingBeds.length} beds`}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-muted-foreground">No bed assigned</p>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(booking.requestedCheckin)}</TableCell>
