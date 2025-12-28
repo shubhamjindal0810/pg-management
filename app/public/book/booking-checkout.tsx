@@ -596,7 +596,6 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                           setExpectedCheckout(selectedDate);
                         }
                       }}
-                      {...register('expectedCheckout')}
                     />
                     <p className="text-xs text-muted-foreground">
                       Your expected checkout date. This helps us plan better and show availability.

@@ -17,7 +17,6 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { DeleteRoomDialog } from './delete-dialog';
 import { OccupancyCalendar } from './occupancy-calendar';
-
 async function getRoom(id: string) {
   const room = await db.room.findUnique({
     where: { id },
@@ -40,7 +39,6 @@ async function getRoom(id: string) {
             select: {
               id: true,
               requestedCheckin: true,
-              expectedCheckout: true,
               durationMonths: true,
               status: true,
             },
@@ -60,11 +58,36 @@ export default async function RoomDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const room = await getRoom(id);
+  const roomData = await getRoom(id);
 
-  if (!room) {
+  if (!roomData) {
     notFound();
   }
+
+  // Type assertion to help TypeScript understand the included relations
+  const room = roomData as typeof roomData & {
+    beds: Array<{
+      id: string;
+      bedNumber: string;
+      status: string;
+      tenants: Array<{
+        id: string;
+        checkInDate: Date | null;
+        expectedCheckout: Date | null;
+        user: { name: string };
+      }>;
+      bookings: Array<{
+        id: string;
+        requestedCheckin: Date;
+        expectedCheckout: Date | null;
+        durationMonths: number;
+        status: string;
+      }>;
+    }>;
+    property: { id: string; name: string };
+    monthlyRent: number | null;
+    securityDeposit: number | null;
+  };
 
   const totalBeds = room.beds.length;
   const occupiedBeds = room.beds.filter((bed) => bed.status === 'OCCUPIED').length;
@@ -77,11 +100,11 @@ export default async function RoomDetailPage({
     dormitory: 'Dormitory',
   };
 
-  const statusConfig = {
-    AVAILABLE: { label: 'Available', variant: 'available' as const, color: 'bg-green-500' },
-    OCCUPIED: { label: 'Occupied', variant: 'occupied' as const, color: 'bg-blue-500' },
-    MAINTENANCE: { label: 'Maintenance', variant: 'maintenance' as const, color: 'bg-yellow-500' },
-    RESERVED: { label: 'Reserved', variant: 'reserved' as const, color: 'bg-purple-500' },
+  const statusConfig: Record<string, { label: string; variant: 'available' | 'occupied' | 'maintenance' | 'reserved'; color: string }> = {
+    AVAILABLE: { label: 'Available', variant: 'available', color: 'bg-green-500' },
+    OCCUPIED: { label: 'Occupied', variant: 'occupied', color: 'bg-blue-500' },
+    MAINTENANCE: { label: 'Maintenance', variant: 'maintenance', color: 'bg-yellow-500' },
+    RESERVED: { label: 'Reserved', variant: 'reserved', color: 'bg-purple-500' },
   };
 
   return (
@@ -169,13 +192,19 @@ export default async function RoomDetailPage({
             expectedCheckout: t.expectedCheckout,
             user: { name: t.user.name },
           })),
-          bookings: bed.bookings.map((b) => ({
-            id: b.id,
-            requestedCheckin: b.requestedCheckin,
-            expectedCheckout: b.expectedCheckout,
-            durationMonths: b.durationMonths,
-            status: b.status,
-          })),
+          bookings: bed.bookings.map((b) => {
+            // Calculate expected checkout from duration if not provided
+            const checkIn = new Date(b.requestedCheckin);
+            const calculatedCheckout = new Date(checkIn);
+            calculatedCheckout.setMonth(calculatedCheckout.getMonth() + b.durationMonths);
+            return {
+              id: b.id,
+              requestedCheckin: b.requestedCheckin,
+              expectedCheckout: calculatedCheckout.toISOString().split('T')[0],
+              durationMonths: b.durationMonths,
+              status: b.status,
+            };
+          }),
         }))}
       />
 
@@ -291,7 +320,7 @@ export default async function RoomDetailPage({
               </TableHeader>
               <TableBody>
                 {room.beds.map((bed) => {
-                  const status = statusConfig[bed.status];
+                  const status = statusConfig[bed.status] || statusConfig.AVAILABLE;
                   const tenant = bed.tenants[0];
 
                   return (
