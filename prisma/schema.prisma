@@ -1,0 +1,628 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  ADMIN
+  STAFF
+  TENANT
+}
+
+enum BedStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum TenantStatus {
+  ACTIVE
+  NOTICE_PERIOD
+  CHECKED_OUT
+}
+
+enum DocumentType {
+  AADHAR
+  PAN
+  PASSPORT
+  DRIVING_LICENSE
+  PHOTO
+  POLICE_VERIFICATION
+  OTHER
+}
+
+enum BillStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum BillItemType {
+  RENT
+  ELECTRICITY
+  MEALS
+  MAINTENANCE
+  LATE_FEE
+  SECURITY_DEPOSIT
+  ADVANCE
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  CHEQUE
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ============================================================================
+// USER & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  phone         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  role          UserRole  @default(TENANT)
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified DateTime? @map("email_verified")
+  phoneVerified DateTime? @map("phone_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  tenant       Tenant?
+  bookings     Booking[]
+  createdBills Bill[]    @relation("BillCreatedBy")
+  payments     Payment[] @relation("PaymentRecordedBy")
+
+  @@map("users")
+}
+
+// ============================================================================
+// PROPERTY MANAGEMENT
+// ============================================================================
+
+model Property {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  city          String
+  state         String
+  pincode       String
+  description   String?  @db.Text
+  amenities     Json?    // ["WiFi", "AC", "Parking", etc.]
+  rules         Json?    // House rules
+  images        Json?    // Array of image URLs
+  // Contact Information
+  phone         String?  // Contact phone number
+  email         String?  // Contact email
+  googleMapsLink String? @map("google_maps_link") @db.Text // Google Maps embed or link
+  latitude      Decimal? @map("latitude") @db.Decimal(10, 8) // Latitude coordinate
+  longitude     Decimal? @map("longitude") @db.Decimal(11, 8) // Longitude coordinate
+  website       String?  // Website URL
+  facebook      String?  // Facebook page URL
+  instagram     String?  // Instagram profile URL
+  whatsapp      String?  // WhatsApp number or link
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Meal Configuration
+  breakfastEnabled Boolean  @default(false) @map("breakfast_enabled")
+  breakfastPrice   Decimal? @map("breakfast_price") @db.Decimal(10, 2)
+  breakfastMenu    String?  @map("breakfast_menu") @db.Text
+
+  lunchEnabled Boolean  @default(false) @map("lunch_enabled")
+  lunchPrice   Decimal? @map("lunch_price") @db.Decimal(10, 2)
+  lunchMenu    String?  @map("lunch_menu") @db.Text
+
+  dinnerEnabled Boolean  @default(false) @map("dinner_enabled")
+  dinnerPrice   Decimal? @map("dinner_price") @db.Decimal(10, 2)
+  dinnerMenu    String?  @map("dinner_menu") @db.Text
+
+  // Relations
+  rooms        Room[]
+  testimonials Testimonial[]
+
+  @@map("properties")
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  propertyId  String   @map("property_id")
+  name        String   // Customer name
+  photo       String?  // URL to customer photo
+  testimonial String   @db.Text // Testimonial text
+  rating      Int      // Star rating (1-5)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("testimonials")
+}
+
+model Room {
+  id              String   @id @default(cuid())
+  propertyId      String   @map("property_id")
+  roomNumber      String   @map("room_number")
+  floor           Int      @default(0)
+  roomType        String   @map("room_type") // single, double, triple, dormitory
+  hasAc           Boolean  @default(false) @map("has_ac")
+  hasAttachedBath Boolean  @default(false) @map("has_attached_bath")
+  acCharge        Decimal  @default(0) @map("ac_charge") @db.Decimal(10, 2) // Extra charge per bed for AC
+  multiBedPricing Json?    @map("multi_bed_pricing") // {"2": 500, "3": 400} - discount per bed when booking multiple beds
+  amenities       Json? // Room-specific amenities
+  images          Json?
+  description     String?  @db.Text
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  property            Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  beds                Bed[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@unique([propertyId, roomNumber])
+  @@map("rooms")
+}
+
+model Bed {
+  id              String    @id @default(cuid())
+  roomId          String    @map("room_id")
+  bedNumber       String    @map("bed_number") // "A", "B", "C" or "1", "2", "3"
+  monthlyRent     Decimal   @map("monthly_rent") @db.Decimal(10, 2)
+  securityDeposit Decimal   @default(0) @map("security_deposit") @db.Decimal(10, 2)
+  status          BedStatus @default(AVAILABLE)
+  description     String?
+  images          Json? // Array of image URLs for bed-specific photos
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  room                Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenants             Tenant[]
+  bookings            Booking[]
+  bookingBeds         BookingBed[]
+  electricityReadings ElectricityReading[]
+
+  @@unique([roomId, bedNumber])
+  @@map("beds")
+}
+
+// ============================================================================
+// TENANT MANAGEMENT
+// ============================================================================
+
+model Tenant {
+  id     String  @id @default(cuid())
+  userId String  @unique @map("user_id")
+  bedId  String? @map("bed_id")
+
+  // Personal Info
+  dateOfBirth DateTime? @map("date_of_birth")
+  gender      String?
+  bloodGroup  String?   @map("blood_group")
+
+  // Emergency Contact
+  emergencyName     String? @map("emergency_name")
+  emergencyPhone    String? @map("emergency_phone")
+  emergencyRelation String? @map("emergency_relation")
+
+  // Work/College Info
+  occupation       String? // "working", "student"
+  workplaceCollege String? @map("workplace_college")
+  workAddress      String? @map("work_address")
+
+  // Stay Info
+  checkInDate      DateTime? @map("check_in_date")
+  expectedCheckout DateTime? @map("expected_checkout")
+  actualCheckout   DateTime? @map("actual_checkout")
+  noticePeriodDays Int       @default(30) @map("notice_period_days")
+  noticeGivenDate  DateTime? @map("notice_given_date")
+
+  // Status
+  status TenantStatus @default(ACTIVE)
+  notes  String?      @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Meal Subscriptions (Individual meal selection)
+  breakfastSubscribed Boolean @default(false) @map("breakfast_subscribed")
+  lunchSubscribed     Boolean @default(false) @map("lunch_subscribed")
+  dinnerSubscribed    Boolean @default(false) @map("dinner_subscribed")
+
+  // Relations
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bed                 Bed?                 @relation(fields: [bedId], references: [id])
+  documents           TenantDocument[]
+  bills               Bill[]
+  payments            Payment[]
+  securityDeposits    SecurityDeposit[]
+  maintenanceRequests MaintenanceRequest[]
+  mealSubscriptions   MealSubscription[]
+  mealOptOuts         MealOptOut[]
+  guestMeals          GuestMeal[]
+
+  @@map("tenants")
+}
+
+model TenantDocument {
+  id             String       @id @default(cuid())
+  tenantId       String       @map("tenant_id")
+  documentType   DocumentType @map("document_type")
+  documentNumber String?      @map("document_number")
+  fileUrl        String       @map("file_url")
+  fileName       String       @map("file_name")
+  isVerified     Boolean      @default(false) @map("is_verified")
+  verifiedAt     DateTime?    @map("verified_at")
+  notes          String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_documents")
+}
+
+// ============================================================================
+// BOOKING (for future online booking)
+// ============================================================================
+
+model Booking {
+  id     String  @id @default(cuid())
+  bedId  String? @map("bed_id") // Primary bed (nullable for backward compatibility)
+  userId String? @map("user_id") // Linked user account (created when approved)
+
+  // Applicant Info (before becoming tenant)
+  name  String
+  email String?
+  phone String
+
+  // Booking Details
+  requestedCheckin DateTime @map("requested_checkin")
+  durationMonths   Int      @default(1) @map("duration_months")
+
+  // AC Option (if room has AC)
+  acSelected Boolean @default(false) @map("ac_selected") // User selected AC option
+
+  // Meal Selections
+  breakfastSelected Boolean @default(false) @map("breakfast_selected")
+  lunchSelected     Boolean @default(false) @map("lunch_selected")
+  dinnerSelected    Boolean @default(false) @map("dinner_selected")
+
+  // Status
+  status     String  @default("pending") // pending, approved, rejected, cancelled, converted
+  adminNotes String? @map("admin_notes") @db.Text
+
+  // Payment
+  advanceAmount Decimal? @map("advance_amount") @db.Decimal(10, 2)
+  advancePaid   Boolean  @default(false) @map("advance_paid")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  bed         Bed?         @relation(fields: [bedId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
+  bookingBeds BookingBed[] // Multiple beds in this booking
+
+  @@map("bookings")
+}
+
+model BookingBed {
+  id        String @id @default(cuid())
+  bookingId String @map("booking_id")
+  bedId     String @map("bed_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bed     Bed     @relation(fields: [bedId], references: [id])
+
+  @@unique([bookingId, bedId])
+  @@map("booking_beds")
+}
+
+// ============================================================================
+// BILLING & PAYMENTS
+// ============================================================================
+
+model Bill {
+  id          String  @id @default(cuid())
+  tenantId    String  @map("tenant_id")
+  createdById String? @map("created_by_id")
+
+  // Billing Period
+  billingMonth DateTime @map("billing_month") // First day of the month
+  dueDate      DateTime @map("due_date")
+
+  // Amounts
+  totalAmount Decimal @map("total_amount") @db.Decimal(10, 2)
+  paidAmount  Decimal @default(0) @map("paid_amount") @db.Decimal(10, 2)
+
+  // Status & Fees
+  status         BillStatus @default(DRAFT)
+  lateFeeApplied Decimal    @default(0) @map("late_fee_applied") @db.Decimal(10, 2)
+
+  // Metadata
+  notes  String?   @db.Text
+  sentAt DateTime? @map("sent_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant    Tenant         @relation(fields: [tenantId], references: [id])
+  createdBy User?          @relation("BillCreatedBy", fields: [createdById], references: [id])
+  lineItems BillLineItem[]
+  payments  Payment[]
+
+  @@unique([tenantId, billingMonth])
+  @@map("bills")
+}
+
+model BillLineItem {
+  id          String       @id @default(cuid())
+  billId      String       @map("bill_id")
+  itemType    BillItemType @map("item_type")
+  description String
+  quantity    Decimal      @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal      @map("unit_price") @db.Decimal(10, 2)
+  amount      Decimal      @db.Decimal(10, 2)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@map("bill_line_items")
+}
+
+model Payment {
+  id           String  @id @default(cuid())
+  billId       String  @map("bill_id")
+  tenantId     String  @map("tenant_id")
+  recordedById String? @map("recorded_by_id")
+
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod @map("payment_method")
+  status        PaymentStatus @default(SUCCESS)
+
+  // Transaction Details
+  transactionId   String?  @map("transaction_id")
+  transactionDate DateTime @default(now()) @map("transaction_date")
+  gatewayResponse Json?    @map("gateway_response")
+
+  // For manual entries
+  reference String? // UPI ref, cheque number, etc.
+  notes     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  bill       Bill   @relation(fields: [billId], references: [id])
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  recordedBy User?  @relation("PaymentRecordedBy", fields: [recordedById], references: [id])
+
+  @@map("payments")
+}
+
+model SecurityDeposit {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+
+  amountPaid    Decimal       @map("amount_paid") @db.Decimal(10, 2)
+  paidDate      DateTime      @map("paid_date")
+  paymentMethod PaymentMethod @map("payment_method")
+
+  // Refund Details
+  amountRefunded Decimal?       @map("amount_refunded") @db.Decimal(10, 2)
+  deductions     Json? // [{ reason: "Damage", amount: 500 }, ...]
+  refundDate     DateTime?      @map("refund_date")
+  refundMethod   PaymentMethod? @map("refund_method")
+
+  status String  @default("held") // held, partially_refunded, refunded
+  notes  String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("security_deposits")
+}
+
+model ElectricityReading {
+  id    String @id @default(cuid())
+  bedId String @map("bed_id")
+
+  readingDate     DateTime @map("reading_date")
+  previousReading Decimal  @map("previous_reading") @db.Decimal(10, 2)
+  currentReading  Decimal  @map("current_reading") @db.Decimal(10, 2)
+  unitsConsumed   Decimal  @map("units_consumed") @db.Decimal(10, 2)
+  ratePerUnit     Decimal  @map("rate_per_unit") @db.Decimal(10, 2)
+  totalAmount     Decimal  @map("total_amount") @db.Decimal(10, 2)
+
+  addedToBillId String? @map("added_to_bill_id")
+  notes         String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bed Bed @relation(fields: [bedId], references: [id])
+
+  @@map("electricity_readings")
+}
+
+// ============================================================================
+// FOOD SERVICE (for Phase 3, but schema ready)
+// ============================================================================
+
+model MealPlan {
+  id                String   @id @default(cuid())
+  name              String // "Basic", "Standard", "Premium"
+  description       String?
+  mealsPerDay       Int      @map("meals_per_day")
+  includesBreakfast Boolean  @default(false) @map("includes_breakfast")
+  includesLunch     Boolean  @default(true) @map("includes_lunch")
+  includesDinner    Boolean  @default(true) @map("includes_dinner")
+  monthlyPrice      Decimal  @map("monthly_price") @db.Decimal(10, 2)
+  isVeg             Boolean  @default(true) @map("is_veg")
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  subscriptions MealSubscription[]
+
+  @@map("meal_plans")
+}
+
+model MealSubscription {
+  id         String    @id @default(cuid())
+  tenantId   String    @map("tenant_id")
+  mealPlanId String    @map("meal_plan_id")
+  startDate  DateTime  @map("start_date")
+  endDate    DateTime? @map("end_date")
+  status     String    @default("active") // active, paused, cancelled
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
+  mealPlan MealPlan     @relation(fields: [mealPlanId], references: [id])
+  optOuts  MealOptOut[]
+
+  @@map("meal_subscriptions")
+}
+
+model MealOptOut {
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  subscriptionId String   @map("subscription_id")
+  date           DateTime
+  mealType       String   @map("meal_type") // breakfast, lunch, dinner
+  reason         String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tenant       Tenant           @relation(fields: [tenantId], references: [id])
+  subscription MealSubscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([subscriptionId, date, mealType])
+  @@map("meal_opt_outs")
+}
+
+model GuestMeal {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  date          DateTime
+  mealType      String   @map("meal_type")
+  guestCount    Int      @default(1) @map("guest_count")
+  chargeAmount  Decimal  @map("charge_amount") @db.Decimal(10, 2)
+  addedToBillId String?  @map("added_to_bill_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("guest_meals")
+}
+
+// ============================================================================
+// MAINTENANCE
+// ============================================================================
+
+model MaintenanceRequest {
+  id       String  @id @default(cuid())
+  tenantId String? @map("tenant_id")
+  roomId   String  @map("room_id")
+
+  category    String // plumbing, electrical, ac, furniture, cleaning, other
+  description String @db.Text
+  images      Json? // Array of image URLs
+
+  priority MaintenancePriority @default(MEDIUM)
+  status   MaintenanceStatus   @default(OPEN)
+
+  assignedTo      String?   @map("assigned_to")
+  resolutionNotes String?   @map("resolution_notes") @db.Text
+  resolvedAt      DateTime? @map("resolved_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  room   Room    @relation(fields: [roomId], references: [id])
+
+  @@map("maintenance_requests")
+}
+
+// ============================================================================
+// ANNOUNCEMENTS
+// ============================================================================
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  message   String    @db.Text
+  priority  String    @default("normal") // normal, important, urgent
+  isActive  Boolean   @default(true) @map("is_active")
+  publishAt DateTime  @default(now()) @map("publish_at")
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
