@@ -56,9 +56,10 @@ async function getBill(id: string) {
 export default async function BillDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const bill = await getBill(params.id);
+  const { id } = await params;
+  const bill = await getBill(id);
 
   if (!bill) {
     notFound();

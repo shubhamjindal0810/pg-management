@@ -164,7 +164,33 @@ export default async function BrowsePage({
             {beds.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2">
                 {beds.map((bed) => (
-                  <BedCard key={bed.id} bed={bed} />
+                  <BedCard
+                    key={bed.id}
+                    bed={{
+                      id: bed.id,
+                      bedNumber: bed.bedNumber,
+                      monthlyRent: Number(bed.monthlyRent),
+                      securityDeposit: Number(bed.securityDeposit),
+                      images: (bed.images as string[]) || null,
+                      description: bed.description,
+                      room: {
+                        id: bed.room.id,
+                        roomNumber: bed.room.roomNumber,
+                        roomType: bed.room.roomType,
+                        hasAc: bed.room.hasAc,
+                        hasAttachedBath: bed.room.hasAttachedBath,
+                        floor: bed.room.floor,
+                        images: (bed.room.images as string[]) || null,
+                        property: {
+                          id: bed.room.property.id,
+                          name: bed.room.property.name,
+                          address: bed.room.property.address,
+                          city: bed.room.property.city,
+                          amenities: (bed.room.property.amenities as string[]) || null,
+                        },
+                      },
+                    }}
+                  />
                 ))}
               </div>
             ) : (

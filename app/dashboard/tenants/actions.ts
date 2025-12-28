@@ -56,7 +56,7 @@ export async function createTenant(data: TenantInput) {
         occupation: validated.occupation || null,
         workplaceCollege: validated.workplaceCollege || null,
         workAddress: validated.workAddress || null,
-        checkInDate: new Date(validated.checkInDate),
+        checkInDate: validated.checkInDate ? new Date(validated.checkInDate) : null,
         expectedCheckout: validated.expectedCheckout ? new Date(validated.expectedCheckout) : null,
         noticePeriodDays: validated.noticePeriodDays,
         notes: validated.notes || null,

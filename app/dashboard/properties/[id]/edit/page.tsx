@@ -14,9 +14,10 @@ async function getProperty(id: string) {
 export default async function EditPropertyPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const property = await getProperty(params.id);
+  const { id } = await params;
+  const property = await getProperty(id);
 
   if (!property) {
     notFound();

@@ -482,7 +482,29 @@ export default async function TenantDetailPage({
       )}
 
       {/* Security Deposits */}
-      <SecurityDepositSection tenant={tenant} />
+      <SecurityDepositSection
+        tenant={{
+          id: tenant.id,
+          securityDeposits: tenant.securityDeposits.map((d) => ({
+            id: d.id,
+            amountPaid: Number(d.amountPaid),
+            paidDate: d.paidDate,
+            paymentMethod: d.paymentMethod,
+            amountRefunded: d.amountRefunded ? Number(d.amountRefunded) : null,
+            refundDate: d.refundDate,
+            refundMethod: d.refundMethod,
+            deductions: d.deductions,
+            status: d.status,
+            notes: d.notes,
+            createdAt: d.createdAt,
+          })),
+          bed: tenant.bed
+            ? {
+                securityDeposit: Number(tenant.bed.securityDeposit),
+              }
+            : null,
+        }}
+      />
     </div>
   );
 }

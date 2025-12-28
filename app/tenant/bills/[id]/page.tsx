@@ -89,7 +89,17 @@ export default async function TenantBillDetailPage({
           year: 'numeric',
         })}`}
         description={`Due Date: ${formatDate(bill.dueDate)}`}
-        action={balance > 0 && <TenantBillActions bill={bill} />}
+        action={
+          balance > 0 && (
+            <TenantBillActions
+              bill={{
+                id: bill.id,
+                totalAmount: Number(bill.totalAmount),
+                paidAmount: Number(bill.paidAmount),
+              }}
+            />
+          )
+        }
       />
 
       {/* Summary Cards */}

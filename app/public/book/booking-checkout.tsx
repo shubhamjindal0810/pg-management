@@ -79,7 +79,19 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
 
   // Calculate total cost
   const calculateTotal = () => {
-    if (selectedBedIds.length === 0) return { monthly: 0, deposit: 0, ac: 0, total: 0 };
+    if (selectedBedIds.length === 0) {
+      return {
+        monthly: 0,
+        deposit: 0,
+        ac: 0,
+        meals: 0,
+        breakfast: 0,
+        lunch: 0,
+        dinner: 0,
+        total: 0,
+        baseMonthly: 0,
+      };
+    }
 
     const selectedBeds = room.beds.filter((b) => selectedBedIds.includes(b.id));
     let baseMonthly = selectedBeds.reduce((sum, bed) => sum + Number(bed.monthlyRent), 0);
@@ -585,7 +597,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                         {durationMonths} month{durationMonths !== 1 ? 's' : ''}
                       </span>
                       <span className="font-medium">
-                        {formatCurrency(totals.baseMonthly * durationMonths)}
+                        {formatCurrency((totals.baseMonthly || 0) * durationMonths)}
                       </span>
                     </div>
                     {totals.ac > 0 && (
@@ -596,29 +608,29 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                         </span>
                       </div>
                     )}
-                    {totals.meals > 0 && (
+                    {(totals.meals || 0) > 0 && (
                       <>
-                        {totals.breakfast > 0 && (
+                        {(totals.breakfast || 0) > 0 && (
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Breakfast ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
                             <span className="font-medium">
-                              {formatCurrency(totals.breakfast)}
+                              {formatCurrency(totals.breakfast || 0)}
                             </span>
                           </div>
                         )}
-                        {totals.lunch > 0 && (
+                        {(totals.lunch || 0) > 0 && (
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Lunch ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
                             <span className="font-medium">
-                              {formatCurrency(totals.lunch)}
+                              {formatCurrency(totals.lunch || 0)}
                             </span>
                           </div>
                         )}
-                        {totals.dinner > 0 && (
+                        {(totals.dinner || 0) > 0 && (
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Dinner ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
                             <span className="font-medium">
-                              {formatCurrency(totals.dinner)}
+                              {formatCurrency(totals.dinner || 0)}
                             </span>
                           </div>
                         )}
@@ -640,7 +652,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                       )}
                     <div className="flex justify-between border-t pt-2 font-semibold">
                       <span>Subtotal</span>
-                      <span>{formatCurrency(totals.monthly * durationMonths + totals.meals)}</span>
+                      <span>{formatCurrency(totals.monthly * durationMonths + (totals.meals || 0))}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Security Deposit</span>
@@ -648,7 +660,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     </div>
                     <div className="flex justify-between border-t pt-2 text-lg font-bold">
                       <span>Total</span>
-                      <span>{formatCurrency(totals.total)}</span>
+                       <span>{formatCurrency(totals.total || 0)}</span>
                     </div>
                   </div>
 

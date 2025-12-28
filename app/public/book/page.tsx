@@ -53,7 +53,39 @@ export default async function BookPage({
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <BookingCheckout room={room} selectedBedId={params.bedId} />
+          <BookingCheckout
+            room={{
+              ...room,
+              acCharge: room.acCharge ? Number(room.acCharge) : null,
+              multiBedPricing: room.multiBedPricing as Record<string, number> | null,
+              beds: room.beds.map((bed) => ({
+                id: bed.id,
+                bedNumber: bed.bedNumber,
+                monthlyRent: Number(bed.monthlyRent),
+                securityDeposit: Number(bed.securityDeposit),
+                images: (bed.images as string[]) || null,
+              })),
+              property: {
+                id: room.property.id,
+                name: room.property.name,
+                address: room.property.address,
+                city: room.property.city,
+                amenities: (room.property.amenities as string[]) || null,
+                rules: (room.property.rules as string[]) || null,
+                images: (room.property.images as string[]) || null,
+                breakfastEnabled: room.property.breakfastEnabled,
+                breakfastPrice: room.property.breakfastPrice ? Number(room.property.breakfastPrice) : null,
+                breakfastMenu: room.property.breakfastMenu,
+                lunchEnabled: room.property.lunchEnabled,
+                lunchPrice: room.property.lunchPrice ? Number(room.property.lunchPrice) : null,
+                lunchMenu: room.property.lunchMenu,
+                dinnerEnabled: room.property.dinnerEnabled,
+                dinnerPrice: room.property.dinnerPrice ? Number(room.property.dinnerPrice) : null,
+                dinnerMenu: room.property.dinnerMenu,
+              },
+            }}
+            selectedBedId={params.bedId}
+          />
         </div>
       </div>
     );

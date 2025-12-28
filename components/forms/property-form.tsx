@@ -86,13 +86,13 @@ export function PropertyForm({ property }: PropertyFormProps) {
       phone: property?.phone || '',
       email: property?.email || '',
       googleMapsLink: property?.googleMapsLink || '',
-      latitude: property?.latitude ? String(property.latitude) : '',
-      longitude: property?.longitude ? String(property.longitude) : '',
+      latitude: property?.latitude !== null && property?.latitude !== undefined ? String(property.latitude) : undefined,
+      longitude: property?.longitude !== null && property?.longitude !== undefined ? String(property.longitude) : undefined,
       website: property?.website || '',
       facebook: property?.facebook || '',
       instagram: property?.instagram || '',
       whatsapp: property?.whatsapp || '',
-    },
+    } as any, // Type assertion needed because form inputs are strings but schema expects numbers after preprocessing
   });
 
   const addAmenity = (amenity: string) => {

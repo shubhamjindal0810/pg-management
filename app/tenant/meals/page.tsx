@@ -66,7 +66,27 @@ export default async function TenantMealsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Meal Services" description="Subscribe to breakfast, lunch, or dinner" />
-      <MealManagement tenant={tenant} property={property} />
+      <MealManagement
+        tenant={{
+          id: tenant.id,
+          breakfastSubscribed: tenant.breakfastSubscribed,
+          lunchSubscribed: tenant.lunchSubscribed,
+          dinnerSubscribed: tenant.dinnerSubscribed,
+        }}
+        property={{
+          id: property.id,
+          name: property.name,
+          breakfastEnabled: property.breakfastEnabled,
+          breakfastPrice: property.breakfastPrice ? Number(property.breakfastPrice) : null,
+          breakfastMenu: property.breakfastMenu,
+          lunchEnabled: property.lunchEnabled,
+          lunchPrice: property.lunchPrice ? Number(property.lunchPrice) : null,
+          lunchMenu: property.lunchMenu,
+          dinnerEnabled: property.dinnerEnabled,
+          dinnerPrice: property.dinnerPrice ? Number(property.dinnerPrice) : null,
+          dinnerMenu: property.dinnerMenu,
+        }}
+      />
     </div>
   );
 }

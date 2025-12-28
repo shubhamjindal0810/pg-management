@@ -47,7 +47,7 @@ export async function createMaintenanceRequest(data: {
       category: data.category,
       priority: data.priority as MaintenancePriority,
       description: data.description,
-      images: data.images || null,
+      images: data.images && data.images.length > 0 ? data.images : undefined,
       status: 'OPEN',
     },
   });

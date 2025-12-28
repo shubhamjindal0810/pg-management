@@ -32,7 +32,7 @@ export async function createBooking(data: {
   }
 
   // Verify all beds are in the same room
-  const roomIds = [...new Set(beds.map((b) => b.room.id))];
+  const roomIds = Array.from(new Set(beds.map((b) => b.room.id)));
   if (roomIds.length > 1) {
     throw new Error('All beds must be in the same room');
   }

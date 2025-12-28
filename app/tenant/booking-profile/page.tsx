@@ -21,6 +21,19 @@ async function getBookingData(userId: string) {
           },
         },
       },
+      bookingBeds: {
+        include: {
+          bed: {
+            include: {
+              room: {
+                include: {
+                  property: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -126,8 +139,21 @@ export default async function BookingProfilePage() {
 
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-blue-900">
-          <strong>Booking Details:</strong> {booking.bed.room.property.name} - Room{' '}
-          {booking.bed.room.roomNumber}, Bed {booking.bed.bedNumber}
+          <strong>Booking Details:</strong>{' '}
+          {booking.bed ? (
+            <>
+              {booking.bed.room.property.name} - Room {booking.bed.room.roomNumber}, Bed{' '}
+              {booking.bed.bedNumber}
+            </>
+          ) : booking.bookingBeds && booking.bookingBeds.length > 0 ? (
+            <>
+              {booking.bookingBeds[0].bed.room.property.name} - Room{' '}
+              {booking.bookingBeds[0].bed.room.roomNumber} ({booking.bookingBeds.length} bed
+              {booking.bookingBeds.length > 1 ? 's' : ''})
+            </>
+          ) : (
+            'No bed assigned'
+          )}
         </p>
         <p className="mt-2 text-sm text-blue-800">
           Once you complete your profile and upload documents, the admin will review and convert your

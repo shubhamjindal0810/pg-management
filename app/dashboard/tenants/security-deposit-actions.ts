@@ -66,7 +66,7 @@ export async function refundSecurityDeposit(data: {
       amountRefunded: newRefunded,
       refundDate: new Date(data.refundDate),
       refundMethod: data.refundMethod,
-      deductions: data.deductions || null,
+      deductions: data.deductions || undefined,
       status,
       notes: data.notes || deposit.notes,
     },

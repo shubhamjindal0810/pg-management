@@ -38,9 +38,10 @@ async function getBed(id: string) {
 export default async function BedDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const bed = await getBed(params.id);
+  const { id } = await params;
+  const bed = await getBed(id);
 
   if (!bed) {
     notFound();

@@ -66,7 +66,7 @@ export function BookingForm({ beds, selectedBedId }: BookingFormProps) {
 
   // Calculate total cost
   const calculateTotal = () => {
-    if (selectedBedIds.length === 0 || !selectedRoom) return { monthly: 0, deposit: 0, ac: 0 };
+    if (selectedBedIds.length === 0 || !selectedRoom) return { monthly: 0, deposit: 0, ac: 0, total: 0 };
 
     const selectedBeds = beds.filter((b) => selectedBedIds.includes(b.id));
     let baseMonthly = selectedBeds.reduce((sum, bed) => sum + Number(bed.monthlyRent), 0);
@@ -306,7 +306,7 @@ export function BookingForm({ beds, selectedBedId }: BookingFormProps) {
                     )}
                     <div className="flex justify-between border-t pt-1 font-semibold">
                       <span>Total Monthly:</span>
-                      <span>{formatCurrency(totals.total)}</span>
+                      <span>{formatCurrency(totals.total || 0)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Security Deposit:</span>

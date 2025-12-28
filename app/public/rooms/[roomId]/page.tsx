@@ -66,12 +66,48 @@ export default async function RoomDetailPage({
         <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
           {/* Main Content */}
           <div>
-            <RoomDetailView room={room} />
+            <RoomDetailView
+              room={{
+                ...room,
+                acCharge: room.acCharge ? Number(room.acCharge) : null,
+                multiBedPricing: (room.multiBedPricing as Record<string, number>) || null,
+                images: (room.images as string[]) || null,
+                property: {
+                  ...room.property,
+                  amenities: (room.property.amenities as string[]) || null,
+                  rules: (room.property.rules as string[]) || null,
+                  images: (room.property.images as string[]) || null,
+                },
+                beds: room.beds.map((bed) => ({
+                  id: bed.id,
+                  bedNumber: bed.bedNumber,
+                  monthlyRent: Number(bed.monthlyRent),
+                  securityDeposit: Number(bed.securityDeposit),
+                  images: (bed.images as string[]) || null,
+                  description: bed.description,
+                })),
+              }}
+            />
           </div>
 
           {/* Booking Card - Sticky */}
           <div className="lg:sticky lg:top-8 lg:h-fit">
-            <RoomBookingCard room={room} />
+            <RoomBookingCard
+              room={{
+                id: room.id,
+                roomNumber: room.roomNumber,
+                roomType: room.roomType,
+                hasAc: room.hasAc,
+                acCharge: room.acCharge ? Number(room.acCharge) : null,
+                multiBedPricing: (room.multiBedPricing as Record<string, number>) || null,
+                beds: room.beds.map((bed) => ({
+                  id: bed.id,
+                  bedNumber: bed.bedNumber,
+                  monthlyRent: Number(bed.monthlyRent),
+                  securityDeposit: Number(bed.securityDeposit),
+                })),
+              }}
+            />
           </div>
         </div>
       </div>

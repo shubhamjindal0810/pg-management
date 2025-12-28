@@ -35,9 +35,10 @@ async function getRooms() {
 export default async function EditBedPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const [bed, rooms] = await Promise.all([getBed(params.id), getRooms()]);
+  const { id } = await params;
+  const [bed, rooms] = await Promise.all([getBed(id), getRooms()]);
 
   if (!bed) {
     notFound();
