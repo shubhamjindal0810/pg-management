@@ -23,7 +23,7 @@ interface BookingActionsProps {
     id: string;
     status: string;
     name: string;
-    bedId: string;
+    bedId: string | null;
   };
 }
 
