@@ -17,10 +17,10 @@ export async function createRoom(data: RoomInput & { images?: string[]; multiBed
       hasAc: validated.hasAc,
       hasAttachedBath: validated.hasAttachedBath,
       acCharge: validated.acCharge || 0,
-      multiBedPricing: data.multiBedPricing || null,
+      multiBedPricing: data.multiBedPricing || undefined,
       description: validated.description || null,
       amenities: validated.amenities || [],
-      images: data.images || null,
+      images: data.images && data.images.length > 0 ? data.images : undefined,
     },
   });
 

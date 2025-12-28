@@ -17,7 +17,7 @@ export async function createBed(data: BedInput & { images?: string[] }) {
       securityDeposit: validated.securityDeposit,
       status: validated.status as BedStatus,
       description: validated.description || null,
-      images: data.images || null,
+      images: data.images && data.images.length > 0 ? data.images : undefined,
     },
   });
 
