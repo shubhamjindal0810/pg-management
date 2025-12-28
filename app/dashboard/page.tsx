@@ -189,7 +189,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={tenant.status === 'NOTICE_PERIOD' ? 'warning' : 'secondary'}>
+                      <Badge variant={tenant.status === 'NOTICE_PERIOD' ? 'notice' : 'active'}>
                         {tenant.status === 'NOTICE_PERIOD' ? 'Notice Given' : 'Active'}
                       </Badge>
                       <p className="mt-1 text-sm text-muted-foreground">
