@@ -59,6 +59,9 @@ interface SecurityDepositSectionProps {
     }>;
     bed: {
       securityDeposit: number;
+      room?: {
+        securityDeposit: number;
+      };
     } | null;
   };
 }
@@ -229,9 +232,9 @@ export function SecurityDepositSection({ tenant }: SecurityDepositSectionProps) 
                       onChange={(e) => setAmount(e.target.value)}
                       required
                     />
-                    {tenant.bed && (
+                    {tenant.bed && tenant.bed.room && (
                       <p className="text-xs text-muted-foreground">
-                        Expected: {formatCurrency(Number(tenant.bed.securityDeposit))}
+                        Expected: {formatCurrency(Number(tenant.bed.room.securityDeposit || 0))}
                       </p>
                     )}
                   </div>

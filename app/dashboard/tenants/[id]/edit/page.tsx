@@ -14,8 +14,6 @@ async function getTenant(id: string) {
         select: {
           id: true,
           bedNumber: true,
-          monthlyRent: true,
-          securityDeposit: true,
           room: {
             include: {
               property: {
@@ -70,11 +68,11 @@ export default async function EditTenantPage({
   const bedsData = allBeds.map((bed) => ({
     id: bed.id,
     bedNumber: bed.bedNumber,
-    monthlyRent: Number(bed.monthlyRent),
-    securityDeposit: Number(bed.securityDeposit),
     room: {
       roomNumber: bed.room.roomNumber,
       hasAc: bed.room.hasAc,
+      monthlyRent: Number(bed.room.monthlyRent || 0),
+      securityDeposit: Number(bed.room.securityDeposit || 0),
       property: {
         name: bed.room.property.name,
       },

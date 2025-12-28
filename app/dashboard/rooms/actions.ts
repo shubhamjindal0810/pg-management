@@ -8,6 +8,18 @@ import { roomSchema, type RoomInput } from '@/lib/validations';
 export async function createRoom(data: RoomInput & { images?: string[]; multiBedPricing?: Record<string, number> }) {
   const validated = roomSchema.parse(data);
 
+  // Determine number of beds based on room type
+  const bedCountMap: Record<string, number> = {
+    single: 1,
+    double: 2,
+    triple: 3,
+    dormitory: 4,
+  };
+  const bedCount = bedCountMap[validated.roomType] || 1;
+
+  // Generate bed letters (A, B, C, D, etc.)
+  const bedLetters = Array.from({ length: bedCount }, (_, i) => String.fromCharCode(65 + i)); // A, B, C, D
+
   const room = await db.room.create({
     data: {
       propertyId: validated.propertyId,
@@ -16,11 +28,21 @@ export async function createRoom(data: RoomInput & { images?: string[]; multiBed
       roomType: validated.roomType,
       hasAc: validated.hasAc,
       hasAttachedBath: validated.hasAttachedBath,
-      acCharge: validated.acCharge || 0,
+      hasBalcony: validated.hasBalcony,
+      monthlyRent: validated.monthlyRent !== undefined ? validated.monthlyRent : null,
+      securityDeposit: validated.securityDeposit !== undefined ? validated.securityDeposit : 0,
+      dailyPrice: validated.dailyPrice || null,
       multiBedPricing: data.multiBedPricing || undefined,
       description: validated.description || null,
       amenities: validated.amenities || [],
       images: data.images && data.images.length > 0 ? data.images : undefined,
+      // Auto-create beds
+      beds: {
+        create: bedLetters.map((letter) => ({
+          bedNumber: letter,
+          status: 'AVAILABLE',
+        })),
+      },
     },
   });
 
@@ -41,7 +63,10 @@ export async function updateRoom(id: string, data: RoomInput & { images?: string
       roomType: validated.roomType,
       hasAc: validated.hasAc,
       hasAttachedBath: validated.hasAttachedBath,
-      acCharge: validated.acCharge || 0,
+      hasBalcony: validated.hasBalcony,
+      monthlyRent: validated.monthlyRent !== undefined ? validated.monthlyRent : null,
+      securityDeposit: validated.securityDeposit !== undefined ? validated.securityDeposit : 0,
+      dailyPrice: validated.dailyPrice || null,
       multiBedPricing: data.multiBedPricing !== undefined ? data.multiBedPricing : undefined,
       description: validated.description || null,
       amenities: validated.amenities || [],

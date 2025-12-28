@@ -56,6 +56,8 @@ async function main() {
         roomType: 'double',
         hasAc: true,
         hasAttachedBath: true,
+        monthlyRent: 12000,
+        securityDeposit: 24000,
       },
     }),
     prisma.room.upsert({
@@ -68,6 +70,8 @@ async function main() {
         roomType: 'triple',
         hasAc: true,
         hasAttachedBath: false,
+        monthlyRent: 8000,
+        securityDeposit: 16000,
       },
     }),
     prisma.room.upsert({
@@ -80,6 +84,8 @@ async function main() {
         roomType: 'double',
         hasAc: false,
         hasAttachedBath: true,
+        monthlyRent: 9000,
+        securityDeposit: 18000,
       },
     }),
   ]);
@@ -94,8 +100,6 @@ async function main() {
       create: {
         roomId: rooms[0].id,
         bedNumber: 'A',
-        monthlyRent: 12000,
-        securityDeposit: 24000,
         status: 'AVAILABLE',
       },
     }),
@@ -105,8 +109,6 @@ async function main() {
       create: {
         roomId: rooms[0].id,
         bedNumber: 'B',
-        monthlyRent: 12000,
-        securityDeposit: 24000,
         status: 'AVAILABLE',
       },
     }),
@@ -117,8 +119,6 @@ async function main() {
       create: {
         roomId: rooms[1].id,
         bedNumber: 'A',
-        monthlyRent: 8000,
-        securityDeposit: 16000,
         status: 'AVAILABLE',
       },
     }),
@@ -128,8 +128,6 @@ async function main() {
       create: {
         roomId: rooms[1].id,
         bedNumber: 'B',
-        monthlyRent: 8000,
-        securityDeposit: 16000,
         status: 'AVAILABLE',
       },
     }),
@@ -139,8 +137,6 @@ async function main() {
       create: {
         roomId: rooms[1].id,
         bedNumber: 'C',
-        monthlyRent: 8000,
-        securityDeposit: 16000,
         status: 'AVAILABLE',
       },
     }),
@@ -151,8 +147,6 @@ async function main() {
       create: {
         roomId: rooms[2].id,
         bedNumber: 'A',
-        monthlyRent: 9000,
-        securityDeposit: 18000,
         status: 'AVAILABLE',
       },
     }),
@@ -162,8 +156,6 @@ async function main() {
       create: {
         roomId: rooms[2].id,
         bedNumber: 'B',
-        monthlyRent: 9000,
-        securityDeposit: 18000,
         status: 'AVAILABLE',
       },
     }),

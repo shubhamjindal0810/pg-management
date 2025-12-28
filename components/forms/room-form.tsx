@@ -37,7 +37,10 @@ interface RoomFormProps {
     roomType: string;
     hasAc: boolean;
     hasAttachedBath: boolean;
-    acCharge?: number | null;
+    hasBalcony?: boolean;
+    monthlyRent?: number | null;
+    securityDeposit?: number | null;
+    dailyPrice?: number | null;
     multiBedPricing?: Record<string, number> | null;
     description: string | null;
     images?: string[] | null;
@@ -73,7 +76,10 @@ export function RoomForm({ properties, room }: RoomFormProps) {
       roomType: (room?.roomType as 'single' | 'double' | 'triple' | 'dormitory') || 'double',
       hasAc: room?.hasAc || false,
       hasAttachedBath: room?.hasAttachedBath || false,
-      acCharge: room?.acCharge ? Number(room.acCharge) : 0,
+      hasBalcony: room?.hasBalcony || false,
+      monthlyRent: room?.monthlyRent ? Number(room.monthlyRent) : 0,
+      securityDeposit: room?.securityDeposit ? Number(room.securityDeposit) : 0,
+      dailyPrice: room?.dailyPrice ? Number(room.dailyPrice) : undefined,
       description: room?.description || '',
     },
   });
@@ -200,6 +206,36 @@ export function RoomForm({ properties, room }: RoomFormProps) {
               </Select>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="monthlyRent">Monthly Rent per Bed (₹) *</Label>
+              <Input
+                id="monthlyRent"
+                type="number"
+                step="0.01"
+                placeholder="5000.00"
+                {...register('monthlyRent')}
+                error={errors.monthlyRent?.message}
+              />
+              <p className="text-xs text-muted-foreground">
+                This price applies to all beds in this room
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="securityDeposit">Security Deposit per Bed (₹) *</Label>
+              <Input
+                id="securityDeposit"
+                type="number"
+                step="0.01"
+                placeholder="5000.00"
+                {...register('securityDeposit')}
+                error={errors.securityDeposit?.message}
+              />
+              <p className="text-xs text-muted-foreground">
+                This deposit applies to all beds in this room
+              </p>
+            </div>
+
             <div className="space-y-4 md:col-span-2">
               <Label>Room Features</Label>
               <div className="flex flex-wrap gap-4">
@@ -219,25 +255,39 @@ export function RoomForm({ properties, room }: RoomFormProps) {
                   />
                   <span>Attached Bathroom</span>
                 </label>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    {...register('hasBalcony')}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span>Balcony</span>
+                </label>
               </div>
             </div>
 
             {watchHasAc && (
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="acCharge">AC Charge per Bed (₹) *</Label>
-                <Input
-                  id="acCharge"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  {...register('acCharge')}
-                  error={errors.acCharge?.message}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Extra charge per bed when user selects AC option
+                <p className="text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  ℹ️ AC pricing is configured at the property level. When users select AC option, the property-level AC monthly rent and security deposit will apply.
                 </p>
               </div>
             )}
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="dailyPrice">Daily Booking Price (₹) - Optional</Label>
+              <Input
+                id="dailyPrice"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...register('dailyPrice')}
+                error={errors.dailyPrice?.message}
+              />
+              <p className="text-xs text-muted-foreground">
+                Set a daily price for per-day bookings. This price applies to all beds in the room. Leave empty to disable daily bookings.
+              </p>
+            </div>
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Description</Label>

@@ -64,8 +64,6 @@ export default async function EditBedPage({
           id: bed.id,
           roomId: bed.roomId,
           bedNumber: bed.bedNumber,
-          monthlyRent: Number(bed.monthlyRent),
-          securityDeposit: Number(bed.securityDeposit),
           status: bed.status,
           description: bed.description,
           images: (bed.images as string[]) || null,

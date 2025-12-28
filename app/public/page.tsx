@@ -44,6 +44,7 @@ async function getProperty() {
           },
         },
         orderBy: { roomNumber: 'asc' },
+        // Select monthlyRent and securityDeposit from room
       },
       testimonials: {
         where: { isActive: true },
@@ -288,7 +289,7 @@ export default async function PublicLandingPage() {
                         </div>
                       </div>
                       <p className="text-gray-600 mb-4">
-                        Starting from {formatCurrency(Math.min(...room.beds.map(b => Number(b.monthlyRent))))}/month
+                        Starting from {formatCurrency(Number(room.monthlyRent || 0))}/month
                       </p>
                       <Link href={`/public/rooms/${room.id}`}>
                         <Button className="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 rounded-full">

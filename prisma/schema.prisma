@@ -8,6 +8,9 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Disable prepared statements for Transaction Mode (PgBouncer)
+  // This is automatically handled by ?pgbouncer=true in connection string
+  // But we can also set it explicitly here if needed
 }
 
 // ============================================================================
@@ -162,6 +165,10 @@ model Property {
   dinnerPrice   Decimal? @map("dinner_price") @db.Decimal(10, 2)
   dinnerMenu    String?  @map("dinner_menu") @db.Text
 
+  // AC Configuration (Property Level)
+  acMonthlyRent     Decimal? @map("ac_monthly_rent") @db.Decimal(10, 2) // AC monthly rent per bed
+  acSecurityDeposit Decimal? @map("ac_security_deposit") @db.Decimal(10, 2) // AC security deposit per bed (only if AC is selected)
+
   // Relations
   rooms        Room[]
   testimonials Testimonial[]
@@ -194,7 +201,10 @@ model Room {
   roomType        String   @map("room_type") // single, double, triple, dormitory
   hasAc           Boolean  @default(false) @map("has_ac")
   hasAttachedBath Boolean  @default(false) @map("has_attached_bath")
-  acCharge        Decimal  @default(0) @map("ac_charge") @db.Decimal(10, 2) // Extra charge per bed for AC
+  hasBalcony      Boolean  @default(false) @map("has_balcony")
+  monthlyRent     Decimal? @map("monthly_rent") @db.Decimal(10, 2) // Monthly rent per bed (same for all beds in room)
+  securityDeposit Decimal? @default(0) @map("security_deposit") @db.Decimal(10, 2) // Security deposit per bed (same for all beds in room)
+  dailyPrice      Decimal? @map("daily_price") @db.Decimal(10, 2) // Daily booking price (same for all beds in room)
   multiBedPricing Json?    @map("multi_bed_pricing") // {"2": 500, "3": 400} - discount per bed when booking multiple beds
   amenities       Json? // Room-specific amenities
   images          Json?
@@ -215,9 +225,7 @@ model Room {
 model Bed {
   id              String    @id @default(cuid())
   roomId          String    @map("room_id")
-  bedNumber       String    @map("bed_number") // "A", "B", "C" or "1", "2", "3"
-  monthlyRent     Decimal   @map("monthly_rent") @db.Decimal(10, 2)
-  securityDeposit Decimal   @default(0) @map("security_deposit") @db.Decimal(10, 2)
+  bedNumber       String    @map("bed_number") // "A", "B", "C", etc.
   status          BedStatus @default(AVAILABLE)
   description     String?
   images          Json? // Array of image URLs for bed-specific photos

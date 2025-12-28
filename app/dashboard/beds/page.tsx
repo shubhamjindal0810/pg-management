@@ -155,7 +155,7 @@ export default async function BedsPage() {
                           <div className={cn('h-2 w-2 rounded-full', status.color)} />
                         </div>
                         <p className="mt-1 text-sm font-medium">
-                          {formatCurrency(Number(bed.monthlyRent))}
+                          {formatCurrency(Number(bed.room.monthlyRent || 0))}
                         </p>
                         {tenant && (
                           <p className="mt-1 truncate text-xs text-muted-foreground">

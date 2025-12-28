@@ -32,9 +32,17 @@ export default async function NewTenantPage() {
 
   // Transform Decimal to number for client component
   const beds = availableBeds.map((bed) => ({
-    ...bed,
-    monthlyRent: Number(bed.monthlyRent),
-    securityDeposit: Number(bed.securityDeposit),
+    id: bed.id,
+    bedNumber: bed.bedNumber,
+    room: {
+      roomNumber: bed.room.roomNumber,
+      hasAc: bed.room.hasAc,
+      monthlyRent: Number(bed.room.monthlyRent || 0),
+      securityDeposit: Number(bed.room.securityDeposit || 0),
+      property: {
+        name: bed.room.property.name,
+      },
+    },
   }));
 
   return (

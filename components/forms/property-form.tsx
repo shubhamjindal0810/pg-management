@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -44,6 +45,8 @@ interface PropertyFormProps {
     dinnerEnabled: boolean;
     dinnerPrice: number | null;
     dinnerMenu: string | null;
+    acMonthlyRent: number | null;
+    acSecurityDeposit: number | null;
   };
 }
 
@@ -61,6 +64,7 @@ const commonAmenities = [
 ];
 
 export function PropertyForm({ property }: PropertyFormProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [amenities, setAmenities] = useState<string[]>(
     (property?.amenities as string[]) || []
@@ -92,8 +96,21 @@ export function PropertyForm({ property }: PropertyFormProps) {
       facebook: property?.facebook || '',
       instagram: property?.instagram || '',
       whatsapp: property?.whatsapp || '',
+      breakfastEnabled: property?.breakfastEnabled || false,
+      breakfastPrice: property?.breakfastPrice ? String(property.breakfastPrice) : '',
+      breakfastMenu: property?.breakfastMenu || '',
+      lunchEnabled: property?.lunchEnabled || false,
+      lunchPrice: property?.lunchPrice ? String(property.lunchPrice) : '',
+      lunchMenu: property?.lunchMenu || '',
+      dinnerEnabled: property?.dinnerEnabled || false,
+      dinnerPrice: property?.dinnerPrice ? String(property.dinnerPrice) : '',
+      dinnerMenu: property?.dinnerMenu || '',
+      acMonthlyRent: property?.acMonthlyRent ? String(property.acMonthlyRent) : '',
+      acSecurityDeposit: property?.acSecurityDeposit ? String(property.acSecurityDeposit) : '',
     } as any, // Type assertion needed because form inputs are strings but schema expects numbers after preprocessing
   });
+
+  const hasAc = amenities.includes('AC');
 
   const addAmenity = (amenity: string) => {
     if (amenity && !amenities.includes(amenity)) {
@@ -129,6 +146,7 @@ export function PropertyForm({ property }: PropertyFormProps) {
       if (property) {
         await updateProperty(property.id, formData);
         toast.success('Property updated successfully');
+        router.refresh(); // Refresh to show updated values
       } else {
         await createProperty(formData);
         toast.success('Property created successfully');
@@ -432,12 +450,54 @@ export function PropertyForm({ property }: PropertyFormProps) {
         </CardContent>
       </Card>
 
+      {/* AC Configuration */}
+      {hasAc && (
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="mb-4 text-lg font-semibold">AC Configuration</h3>
+            <p className="mb-6 text-sm text-muted-foreground">
+              Configure AC pricing for this property. These settings apply to all rooms with AC option.
+            </p>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="acMonthlyRent">AC Monthly Rent per Bed (₹)</Label>
+                <Input
+                  id="acMonthlyRent"
+                  type="number"
+                  step="0.01"
+                  placeholder="1000.00"
+                  {...register('acMonthlyRent')}
+                  error={errors.acMonthlyRent?.message}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Monthly rent per bed when AC option is selected
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="acSecurityDeposit">AC Security Deposit per Bed (₹)</Label>
+                <Input
+                  id="acSecurityDeposit"
+                  type="number"
+                  step="0.01"
+                  placeholder="2000.00"
+                  {...register('acSecurityDeposit')}
+                  error={errors.acSecurityDeposit?.message}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Security deposit per bed when AC option is selected
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Meal Configuration */}
       <Card>
         <CardContent className="pt-6">
           <h3 className="mb-4 text-lg font-semibold">Meal Services</h3>
           <p className="mb-6 text-sm text-muted-foreground">
-            Configure meal options available for tenants. Enable meals and set prices per meal.
+            Configure meal options available for tenants. Meal services are available only on a monthly subscription basis - not per meal.
           </p>
 
           <div className="space-y-8">

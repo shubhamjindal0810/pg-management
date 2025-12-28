@@ -18,6 +18,17 @@ async function getRoomDetails(roomId: string) {
           rules: true,
           images: true,
           description: true,
+          breakfastEnabled: true,
+          breakfastPrice: true,
+          breakfastMenu: true,
+          lunchEnabled: true,
+          lunchPrice: true,
+          lunchMenu: true,
+          dinnerEnabled: true,
+          dinnerPrice: true,
+          dinnerMenu: true,
+          acMonthlyRent: true,
+          acSecurityDeposit: true,
         },
       },
       beds: {
@@ -69,7 +80,7 @@ export default async function RoomDetailPage({
             <RoomDetailView
               room={{
                 ...room,
-                acCharge: room.acCharge ? Number(room.acCharge) : null,
+                hasBalcony: room.hasBalcony,
                 multiBedPricing: (room.multiBedPricing as Record<string, number>) || null,
                 images: (room.images as string[]) || null,
                 property: {
@@ -77,12 +88,23 @@ export default async function RoomDetailPage({
                   amenities: (room.property.amenities as string[]) || null,
                   rules: (room.property.rules as string[]) || null,
                   images: (room.property.images as string[]) || null,
+                  breakfastEnabled: room.property.breakfastEnabled,
+                  breakfastPrice: room.property.breakfastPrice ? Number(room.property.breakfastPrice) : null,
+                  breakfastMenu: room.property.breakfastMenu,
+                  lunchEnabled: room.property.lunchEnabled,
+                  lunchPrice: room.property.lunchPrice ? Number(room.property.lunchPrice) : null,
+                  lunchMenu: room.property.lunchMenu,
+                  dinnerEnabled: room.property.dinnerEnabled,
+                  dinnerPrice: room.property.dinnerPrice ? Number(room.property.dinnerPrice) : null,
+                  dinnerMenu: room.property.dinnerMenu,
+                  acMonthlyRent: room.property.acMonthlyRent ? Number(room.property.acMonthlyRent) : null,
+                  acSecurityDeposit: room.property.acSecurityDeposit ? Number(room.property.acSecurityDeposit) : null,
                 },
+                monthlyRent: room.monthlyRent ? Number(room.monthlyRent) : 0,
+                securityDeposit: room.securityDeposit ? Number(room.securityDeposit) : 0,
                 beds: room.beds.map((bed) => ({
                   id: bed.id,
                   bedNumber: bed.bedNumber,
-                  monthlyRent: Number(bed.monthlyRent),
-                  securityDeposit: Number(bed.securityDeposit),
                   images: (bed.images as string[]) || null,
                   description: bed.description,
                 })),
@@ -98,14 +120,16 @@ export default async function RoomDetailPage({
                 roomNumber: room.roomNumber,
                 roomType: room.roomType,
                 hasAc: room.hasAc,
-                acCharge: room.acCharge ? Number(room.acCharge) : null,
+                monthlyRent: room.monthlyRent ? Number(room.monthlyRent) : 0,
                 multiBedPricing: (room.multiBedPricing as Record<string, number>) || null,
                 beds: room.beds.map((bed) => ({
                   id: bed.id,
                   bedNumber: bed.bedNumber,
-                  monthlyRent: Number(bed.monthlyRent),
-                  securityDeposit: Number(bed.securityDeposit),
                 })),
+                property: {
+                  acMonthlyRent: room.property.acMonthlyRent ? Number(room.property.acMonthlyRent) : null,
+                  acSecurityDeposit: room.property.acSecurityDeposit ? Number(room.property.acSecurityDeposit) : null,
+                },
               }}
             />
           </div>

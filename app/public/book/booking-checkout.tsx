@@ -31,7 +31,7 @@ interface BookingCheckoutProps {
     id: string;
     roomNumber: string;
     hasAc: boolean;
-    acCharge: number | null;
+    dailyPrice: number | null;
     multiBedPricing: Record<string, number> | null;
     property: {
       id: string;
@@ -50,14 +50,16 @@ interface BookingCheckoutProps {
       dinnerEnabled: boolean;
       dinnerPrice: number | null;
       dinnerMenu: string | null;
+      acMonthlyRent: number | null;
+      acSecurityDeposit: number | null;
     };
     beds: Array<{
       id: string;
       bedNumber: string;
-      monthlyRent: number;
-      securityDeposit: number;
       images: string[] | null;
     }>;
+    monthlyRent: number;
+    securityDeposit: number;
   };
   selectedBedId?: string;
 }
@@ -72,7 +74,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
   const [breakfastSelected, setBreakfastSelected] = useState(false);
   const [lunchSelected, setLunchSelected] = useState(false);
   const [dinnerSelected, setDinnerSelected] = useState(false);
+  const [bookingType, setBookingType] = useState<'monthly' | 'daily'>('monthly');
   const [durationMonths, setDurationMonths] = useState(1);
+  const [durationDays, setDurationDays] = useState(1);
 
   const propertyImages = (room.property.images as string[]) || [];
   const primaryImage = propertyImages[0] || '/placeholder-room.jpg';
@@ -82,6 +86,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
     if (selectedBedIds.length === 0) {
       return {
         monthly: 0,
+        daily: 0,
         deposit: 0,
         ac: 0,
         meals: 0,
@@ -90,44 +95,71 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
         dinner: 0,
         total: 0,
         baseMonthly: 0,
+        baseDaily: 0,
       };
     }
 
     const selectedBeds = room.beds.filter((b) => selectedBedIds.includes(b.id));
-    let baseMonthly = selectedBeds.reduce((sum, bed) => sum + Number(bed.monthlyRent), 0);
-    let totalDeposit = selectedBeds.reduce((sum, bed) => sum + Number(bed.securityDeposit), 0);
+    let totalDeposit = Number(room.securityDeposit) * selectedBedIds.length;
 
-    // Apply multi-bed discount if applicable
-    if (room.multiBedPricing && selectedBedIds.length >= 2) {
-      const discountKey = String(selectedBedIds.length);
-      const discountPerBed = room.multiBedPricing[discountKey];
-      if (discountPerBed) {
-        baseMonthly -= discountPerBed * selectedBedIds.length;
+    let baseMonthly = 0;
+    let baseDaily = 0;
+
+    if (bookingType === 'monthly') {
+      baseMonthly = Number(room.monthlyRent) * selectedBedIds.length;
+      
+      // Apply multi-bed discount if applicable
+      if (room.multiBedPricing && selectedBedIds.length >= 2) {
+        const discountKey = String(selectedBedIds.length);
+        const discountPerBed = room.multiBedPricing[discountKey];
+        if (discountPerBed) {
+          baseMonthly -= discountPerBed * selectedBedIds.length;
+        }
+      }
+    } else {
+      // Daily booking
+      if (room.dailyPrice) {
+        baseDaily = Number(room.dailyPrice) * selectedBedIds.length * durationDays;
+      } else {
+        // Fallback: calculate from monthly rent / 30
+        baseDaily = (Number(room.monthlyRent) / 30) * selectedBedIds.length * durationDays;
       }
     }
 
-    // Add AC charge if selected
-    const acCharge = acSelected && room.hasAc && room.acCharge
-      ? Number(room.acCharge) * selectedBedIds.length
+    // Add AC charge if selected (only for monthly bookings) - from property level
+    const acCharge = acSelected && room.hasAc && room.property.acMonthlyRent && bookingType === 'monthly'
+      ? Number(room.property.acMonthlyRent) * selectedBedIds.length
       : 0;
 
+    // Add AC security deposit if AC is selected
+    const acDeposit = acSelected && room.hasAc && room.property.acSecurityDeposit
+      ? Number(room.property.acSecurityDeposit) * selectedBedIds.length
+      : 0;
+    
+    totalDeposit += acDeposit;
+
     // Add meal charges if selected
+    const daysForMeals = bookingType === 'monthly' ? 30 * durationMonths : durationDays;
     const breakfastCharge = breakfastSelected && room.property.breakfastEnabled && room.property.breakfastPrice
-      ? Number(room.property.breakfastPrice) * 30 * durationMonths // 30 days per month
+      ? Number(room.property.breakfastPrice) * daysForMeals
       : 0;
     const lunchCharge = lunchSelected && room.property.lunchEnabled && room.property.lunchPrice
-      ? Number(room.property.lunchPrice) * 30 * durationMonths
+      ? Number(room.property.lunchPrice) * daysForMeals
       : 0;
     const dinnerCharge = dinnerSelected && room.property.dinnerEnabled && room.property.dinnerPrice
-      ? Number(room.property.dinnerPrice) * 30 * durationMonths
+      ? Number(room.property.dinnerPrice) * daysForMeals
       : 0;
     const totalMealCharge = breakfastCharge + lunchCharge + dinnerCharge;
 
     const monthlyTotal = baseMonthly + acCharge;
-    const totalForDuration = monthlyTotal * durationMonths;
+    const dailyTotal = baseDaily;
+    const totalForDuration = bookingType === 'monthly' 
+      ? monthlyTotal * durationMonths 
+      : dailyTotal;
 
     return {
       monthly: monthlyTotal,
+      daily: dailyTotal,
       deposit: totalDeposit,
       ac: acCharge,
       meals: totalMealCharge,
@@ -136,6 +168,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
       dinner: dinnerCharge,
       total: totalForDuration + totalDeposit + totalMealCharge,
       baseMonthly,
+      baseDaily,
     };
   };
 
@@ -178,8 +211,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
         email: data.email || undefined,
         phone: data.phone,
         requestedCheckin: data.requestedCheckin,
-        durationMonths: durationMonths,
-        acSelected: acSelected && room.hasAc,
+        durationMonths: bookingType === 'monthly' ? durationMonths : undefined,
+        durationDays: bookingType === 'daily' ? durationDays : undefined,
+        acSelected: acSelected && room.hasAc && bookingType === 'monthly',
         breakfastSelected: breakfastSelected && room.property.breakfastEnabled,
         lunchSelected: lunchSelected && room.property.lunchEnabled,
         dinnerSelected: dinnerSelected && room.property.dinnerEnabled,
@@ -273,12 +307,12 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                               </Label>
                             </div>
                             <p className="mt-1 text-sm text-muted-foreground">
-                              {formatCurrency(Number(bed.monthlyRent))}/month
+                              {formatCurrency(Number(room.monthlyRent))}/month
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">
-                              {formatCurrency(Number(bed.securityDeposit))}
+                              {formatCurrency(Number(room.securityDeposit))}
                             </p>
                             <p className="text-xs text-muted-foreground">Deposit</p>
                           </div>
@@ -309,7 +343,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
               <CardHeader>
                 <CardTitle>Meal Services (Optional)</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Add meal services to your booking. Charges apply per meal per day.
+                  Add meal services to your booking. Meal services are available only on a monthly subscription basis - not per meal.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -370,7 +404,10 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     <div className="text-right">
                       <p className="font-medium">{formatCurrency(Number(room.property.lunchPrice || 0))}/meal</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatCurrency(Number(room.property.lunchPrice || 0) * 30 * durationMonths)} for {durationMonths} month{durationMonths > 1 ? 's' : ''}
+                        {bookingType === 'monthly' 
+                          ? `${formatCurrency(Number(room.property.lunchPrice || 0) * 30 * durationMonths)} for ${durationMonths} month${durationMonths > 1 ? 's' : ''}`
+                          : `${formatCurrency(Number(room.property.lunchPrice || 0) * durationDays)} for ${durationDays} day${durationDays > 1 ? 's' : ''}`
+                        }
                       </p>
                     </div>
                   </div>
@@ -398,7 +435,10 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     <div className="text-right">
                       <p className="font-medium">{formatCurrency(Number(room.property.dinnerPrice || 0))}/meal</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatCurrency(Number(room.property.dinnerPrice || 0) * 30 * durationMonths)} for {durationMonths} month{durationMonths > 1 ? 's' : ''}
+                        {bookingType === 'monthly' 
+                          ? `${formatCurrency(Number(room.property.dinnerPrice || 0) * 30 * durationMonths)} for ${durationMonths} month${durationMonths > 1 ? 's' : ''}`
+                          : `${formatCurrency(Number(room.property.dinnerPrice || 0) * durationDays)} for ${durationDays} day${durationDays > 1 ? 's' : ''}`
+                        }
                       </p>
                     </div>
                   </div>
@@ -432,12 +472,22 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     <div className="flex items-center gap-2">
                       <Snowflake className="h-4 w-4" />
                       <span>Use Air Conditioning</span>
-                      {room.acCharge && (
+                      {room.property.acMonthlyRent && bookingType === 'monthly' && (
                         <span className="text-sm text-muted-foreground">
-                          (+{formatCurrency(Number(room.acCharge))} per bed/month)
+                          (+{formatCurrency(Number(room.property.acMonthlyRent))} per bed/month)
                         </span>
                       )}
                     </div>
+                    {room.hasAc && (
+                      <p className="mt-2 text-xs text-amber-600 font-medium">
+                        ⚠️ AC usage charges will be billed separately based on electricity consumption at the end of each month
+                      </p>
+                    )}
+                    {room.hasAc && room.property.acSecurityDeposit && (
+                      <p className="mt-1 text-xs text-blue-600 font-medium">
+                        ℹ️ AC security deposit: {formatCurrency(Number(room.property.acSecurityDeposit))} per bed
+                      </p>
+                    )}
                   </Label>
                 </div>
               </CardContent>
@@ -463,7 +513,32 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="durationMonths">Duration *</Label>
+                  <Label htmlFor="bookingType">Booking Type *</Label>
+                  <select
+                    id="bookingType"
+                    value={bookingType}
+                    onChange={(e) => {
+                      setBookingType(e.target.value as 'monthly' | 'daily');
+                      if (e.target.value === 'daily' && !room.dailyPrice) {
+                        toast.warning('Daily booking is not available for this room. Please contact us for short-term stays.');
+                      }
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="monthly">Monthly Booking</option>
+                    <option value="daily" disabled={!room.dailyPrice}>Per Day Booking</option>
+                  </select>
+                  {!room.dailyPrice && (
+                    <p className="text-xs text-muted-foreground">
+                      Daily booking not available. Please contact us for short-term stays.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {bookingType === 'monthly' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="durationMonths">Duration (Months) *</Label>
                   <select
                     id="durationMonths"
                     value={durationMonths}
@@ -477,7 +552,22 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                     <option value="12">12 Months</option>
                   </select>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="durationDays">Duration (Days) *</Label>
+                  <Input
+                    id="durationDays"
+                    type="number"
+                    min="1"
+                    value={durationDays}
+                    onChange={(e) => setDurationDays(parseInt(e.target.value) || 1)}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Daily rate: {formatCurrency(Number(room.dailyPrice || 0))} per bed per day
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -591,20 +681,48 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
               {selectedBedIds.length > 0 ? (
                 <>
                   <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {selectedBedIds.length} bed{selectedBedIds.length !== 1 ? 's' : ''} ×{' '}
-                        {durationMonths} month{durationMonths !== 1 ? 's' : ''}
-                      </span>
-                      <span className="font-medium">
-                        {formatCurrency((totals.baseMonthly || 0) * durationMonths)}
-                      </span>
-                    </div>
-                    {totals.ac > 0 && (
+                    {bookingType === 'monthly' ? (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {selectedBedIds.length} bed{selectedBedIds.length !== 1 ? 's' : ''} ×{' '}
+                            {durationMonths} month{durationMonths !== 1 ? 's' : ''}
+                          </span>
+                          <span className="font-medium">
+                            {formatCurrency((totals.baseMonthly || 0) * durationMonths)}
+                          </span>
+                        </div>
+                        {totals.ac > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">AC Charge ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
+                            <span className="font-medium">
+                              {formatCurrency(totals.ac * durationMonths)}
+                            </span>
+                          </div>
+                        )}
+                        {room.multiBedPricing &&
+                          selectedBedIds.length >= 2 &&
+                          room.multiBedPricing[String(selectedBedIds.length)] && (
+                            <div className="flex justify-between text-sm text-green-600">
+                              <span>Multi-bed Discount</span>
+                              <span>
+                                -{formatCurrency(
+                                  Number(room.multiBedPricing[String(selectedBedIds.length)]) *
+                                    selectedBedIds.length *
+                                    durationMonths
+                                )}
+                              </span>
+                            </div>
+                          )}
+                      </>
+                    ) : (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">AC Charge</span>
+                        <span className="text-muted-foreground">
+                          {selectedBedIds.length} bed{selectedBedIds.length !== 1 ? 's' : ''} ×{' '}
+                          {durationDays} day{durationDays > 1 ? 's' : ''}
+                        </span>
                         <span className="font-medium">
-                          {formatCurrency(totals.ac * durationMonths)}
+                          {formatCurrency(totals.daily || 0)}
                         </span>
                       </div>
                     )}
@@ -612,7 +730,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                       <>
                         {(totals.breakfast || 0) > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Breakfast ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
+                            <span className="text-muted-foreground">
+                              Breakfast ({bookingType === 'monthly' ? `${durationMonths} month${durationMonths > 1 ? 's' : ''}` : `${durationDays} day${durationDays > 1 ? 's' : ''}`})
+                            </span>
                             <span className="font-medium">
                               {formatCurrency(totals.breakfast || 0)}
                             </span>
@@ -620,7 +740,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                         )}
                         {(totals.lunch || 0) > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Lunch ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
+                            <span className="text-muted-foreground">
+                              Lunch ({bookingType === 'monthly' ? `${durationMonths} month${durationMonths > 1 ? 's' : ''}` : `${durationDays} day${durationDays > 1 ? 's' : ''}`})
+                            </span>
                             <span className="font-medium">
                               {formatCurrency(totals.lunch || 0)}
                             </span>
@@ -628,7 +750,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                         )}
                         {(totals.dinner || 0) > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Dinner ({durationMonths} month{durationMonths > 1 ? 's' : ''})</span>
+                            <span className="text-muted-foreground">
+                              Dinner ({bookingType === 'monthly' ? `${durationMonths} month${durationMonths > 1 ? 's' : ''}` : `${durationDays} day${durationDays > 1 ? 's' : ''}`})
+                            </span>
                             <span className="font-medium">
                               {formatCurrency(totals.dinner || 0)}
                             </span>
@@ -636,23 +760,9 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
                         )}
                       </>
                     )}
-                    {room.multiBedPricing &&
-                      selectedBedIds.length >= 2 &&
-                      room.multiBedPricing[String(selectedBedIds.length)] && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>Multi-bed Discount</span>
-                          <span>
-                            -{formatCurrency(
-                              Number(room.multiBedPricing[String(selectedBedIds.length)]) *
-                                selectedBedIds.length *
-                                durationMonths
-                            )}
-                          </span>
-                        </div>
-                      )}
                     <div className="flex justify-between border-t pt-2 font-semibold">
                       <span>Subtotal</span>
-                      <span>{formatCurrency(totals.monthly * durationMonths + (totals.meals || 0))}</span>
+                      <span>{formatCurrency((bookingType === 'monthly' ? totals.monthly * durationMonths : totals.daily) + (totals.meals || 0))}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Security Deposit</span>

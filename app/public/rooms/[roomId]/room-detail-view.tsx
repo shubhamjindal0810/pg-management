@@ -13,6 +13,9 @@ import {
   Droplet,
   Star,
   Check,
+  Home,
+  Coffee,
+  Soup,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +31,7 @@ interface RoomDetailViewProps {
     roomType: string;
     hasAc: boolean;
     hasAttachedBath: boolean;
-    acCharge: number | null;
+    hasBalcony: boolean;
     multiBedPricing: Record<string, number> | null;
     description: string | null;
     images: string[] | null;
@@ -42,12 +45,23 @@ interface RoomDetailViewProps {
       rules: string[] | null;
       images: string[] | null;
       description: string | null;
+      breakfastEnabled: boolean;
+      breakfastPrice: number | null;
+      breakfastMenu: string | null;
+      lunchEnabled: boolean;
+      lunchPrice: number | null;
+      lunchMenu: string | null;
+      dinnerEnabled: boolean;
+      dinnerPrice: number | null;
+      dinnerMenu: string | null;
+      acMonthlyRent: number | null;
+      acSecurityDeposit: number | null;
     };
+    monthlyRent: number;
+    securityDeposit: number;
     beds: Array<{
       id: string;
       bedNumber: string;
-      monthlyRent: number;
-      securityDeposit: number;
       images: string[] | null;
       description: string | null;
     }>;
@@ -106,21 +120,22 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
           </div>
           <Separator orientation="vertical" className="h-4" />
           <span>{sharingType}</span>
-          {room.hasAc && (
+          <Separator orientation="vertical" className="h-4" />
+          <div className="flex items-center gap-1">
+            <Snowflake className="h-4 w-4" />
+            <span>{room.hasAc ? 'AC Optional' : 'Non AC'}</span>
+          </div>
+          <Separator orientation="vertical" className="h-4" />
+          <div className="flex items-center gap-1">
+            <Droplets className="h-4 w-4" />
+            <span>{room.hasAttachedBath ? 'Attached Bath' : 'Common Bath'}</span>
+          </div>
+          {room.hasBalcony && (
             <>
               <Separator orientation="vertical" className="h-4" />
               <div className="flex items-center gap-1">
-                <Snowflake className="h-4 w-4" />
-                <span>AC Available</span>
-              </div>
-            </>
-          )}
-          {room.hasAttachedBath && (
-            <>
-              <Separator orientation="vertical" className="h-4" />
-              <div className="flex items-center gap-1">
-                <Droplets className="h-4 w-4" />
-                <span>Attached Bathroom</span>
+                <Home className="h-4 w-4" />
+                <span>Balcony</span>
               </div>
             </>
           )}
@@ -206,15 +221,15 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
                         <div className="flex items-baseline justify-between pt-2">
                           <div>
                             <p className="text-lg font-bold">
-                              {formatCurrency(Number(bed.monthlyRent))}
+                              {formatCurrency(Number(room.monthlyRent))}
                             </p>
                             <p className="text-xs text-muted-foreground">per month</p>
                           </div>
-                          {Number(bed.securityDeposit) > 0 && (
+                          {Number(room.securityDeposit) > 0 && (
                             <div className="text-right">
                               <p className="text-xs text-muted-foreground">Deposit</p>
                               <p className="text-sm font-medium">
-                                {formatCurrency(Number(bed.securityDeposit))}
+                                {formatCurrency(Number(room.securityDeposit))}
                               </p>
                             </div>
                           )}
@@ -238,25 +253,44 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
                   <p className="text-sm text-muted-foreground">{roomTypeLabels[room.roomType]}</p>
                 </div>
               </div>
-              {room.hasAc && (
-                <div className="flex items-start gap-3">
-                  <Snowflake className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Air Conditioning</p>
-                    <p className="text-sm text-muted-foreground">
-                      {room.acCharge
-                        ? `Available (+${formatCurrency(Number(room.acCharge))}/bed/month)`
-                        : 'Available'}
+              <div className="flex items-start gap-3">
+                <Snowflake className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Air Conditioning</p>
+                  <p className="text-sm text-muted-foreground">
+                    {room.hasAc
+                      ? room.property.acMonthlyRent
+                        ? `AC Optional (+${formatCurrency(Number(room.property.acMonthlyRent))}/bed/month)`
+                        : 'AC Optional'
+                      : 'Non AC'}
+                  </p>
+                  {room.hasAc && room.property.acMonthlyRent && (
+                    <p className="mt-1 text-xs text-blue-600 font-medium">
+                      ℹ️ AC security deposit: {formatCurrency(Number(room.property.acSecurityDeposit || 0))} per bed
                     </p>
-                  </div>
+                  )}
+                  {room.hasAc && (
+                    <p className="mt-1 text-xs text-amber-600 font-medium">
+                      ⚠️ AC usage charges will be billed separately based on electricity consumption at the end of each month
+                    </p>
+                  )}
                 </div>
-              )}
-              {room.hasAttachedBath && (
+              </div>
+              <div className="flex items-start gap-3">
+                <Droplets className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Bathroom</p>
+                  <p className="text-sm text-muted-foreground">
+                    {room.hasAttachedBath ? 'Attached Bath' : 'Common Bath'}
+                  </p>
+                </div>
+              </div>
+              {room.hasBalcony && (
                 <div className="flex items-start gap-3">
-                  <Droplets className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <Home className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Attached Bathroom</p>
-                    <p className="text-sm text-muted-foreground">Private bathroom included</p>
+                    <p className="font-medium">Balcony</p>
+                    <p className="text-sm text-muted-foreground">Private balcony included</p>
                   </div>
                 </div>
               )}
@@ -286,6 +320,68 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Meal Services */}
+          {(room.property.breakfastEnabled || room.property.lunchEnabled || room.property.dinnerEnabled) && (
+            <div>
+              <h3 className="mb-4 text-xl font-semibold flex items-center gap-2">
+                <Utensils className="h-5 w-5" />
+                Meal Services (Add-on)
+              </h3>
+              <div className="space-y-4 rounded-lg border p-4">
+                {room.property.breakfastEnabled && (
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Coffee className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Breakfast</p>
+                        {room.property.breakfastMenu && (
+                          <p className="text-sm text-muted-foreground">{room.property.breakfastMenu}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="font-semibold">{formatCurrency(Number(room.property.breakfastPrice || 0))}/meal</p>
+                  </div>
+                )}
+                {room.property.lunchEnabled && (
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Soup className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Lunch</p>
+                        {room.property.lunchMenu && (
+                          <p className="text-sm text-muted-foreground">{room.property.lunchMenu}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="font-semibold">{formatCurrency(Number(room.property.lunchPrice || 0))}/meal</p>
+                  </div>
+                )}
+                {room.property.dinnerEnabled && (
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Utensils className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Dinner</p>
+                        {room.property.dinnerMenu && (
+                          <p className="text-sm text-muted-foreground">{room.property.dinnerMenu}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="font-semibold">{formatCurrency(Number(room.property.dinnerPrice || 0))}/meal</p>
+                  </div>
+                )}
+                <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
+                  <p className="text-sm font-medium text-blue-900 mb-1">
+                    ⚠️ Important: Meal Services Subscription
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    Meal services are available only on a monthly subscription basis - not per meal. You can select them during booking or add them later from your tenant dashboard.
+                  </p>
+                </div>
               </div>
             </div>
           )}

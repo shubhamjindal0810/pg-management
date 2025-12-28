@@ -24,6 +24,8 @@ async function getRoomWithBeds(roomId: string) {
           dinnerEnabled: true,
           dinnerPrice: true,
           dinnerMenu: true,
+          acMonthlyRent: true,
+          acSecurityDeposit: true,
         },
       },
       beds: {
@@ -56,15 +58,15 @@ export default async function BookPage({
           <BookingCheckout
             room={{
               ...room,
-              acCharge: room.acCharge ? Number(room.acCharge) : null,
+              dailyPrice: room.dailyPrice ? Number(room.dailyPrice) : null,
               multiBedPricing: room.multiBedPricing as Record<string, number> | null,
               beds: room.beds.map((bed) => ({
                 id: bed.id,
                 bedNumber: bed.bedNumber,
-                monthlyRent: Number(bed.monthlyRent),
-                securityDeposit: Number(bed.securityDeposit),
                 images: (bed.images as string[]) || null,
               })),
+              monthlyRent: room.monthlyRent ? Number(room.monthlyRent) : 0,
+              securityDeposit: room.securityDeposit ? Number(room.securityDeposit) : 0,
               property: {
                 id: room.property.id,
                 name: room.property.name,
@@ -82,6 +84,8 @@ export default async function BookPage({
                 dinnerEnabled: room.property.dinnerEnabled,
                 dinnerPrice: room.property.dinnerPrice ? Number(room.property.dinnerPrice) : null,
                 dinnerMenu: room.property.dinnerMenu,
+                acMonthlyRent: room.property.acMonthlyRent ? Number(room.property.acMonthlyRent) : null,
+                acSecurityDeposit: room.property.acSecurityDeposit ? Number(room.property.acSecurityDeposit) : null,
               },
             }}
             selectedBedId={params.bedId}

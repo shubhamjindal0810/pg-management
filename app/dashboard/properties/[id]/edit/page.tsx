@@ -58,6 +58,8 @@ export default async function EditPropertyPage({
           dinnerEnabled: property.dinnerEnabled,
           dinnerPrice: property.dinnerPrice ? Number(property.dinnerPrice) : null,
           dinnerMenu: property.dinnerMenu,
+          acMonthlyRent: property.acMonthlyRent ? Number(property.acMonthlyRent) : null,
+          acSecurityDeposit: property.acSecurityDeposit ? Number(property.acSecurityDeposit) : null,
         }}
       />
     </div>

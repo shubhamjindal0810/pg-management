@@ -35,8 +35,6 @@ interface BedFormProps {
     id: string;
     roomId: string;
     bedNumber: string;
-    monthlyRent: number;
-    securityDeposit: number;
     status: string;
     description: string | null;
     images?: string[] | null;
@@ -59,8 +57,6 @@ export function BedForm({ rooms, bed }: BedFormProps) {
     defaultValues: {
       roomId: bed?.roomId || rooms[0]?.id || '',
       bedNumber: bed?.bedNumber || '',
-      monthlyRent: bed?.monthlyRent || 0,
-      securityDeposit: bed?.securityDeposit || 0,
       status: (bed?.status as 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED') || 'AVAILABLE',
       description: bed?.description || '',
     },
@@ -139,28 +135,6 @@ export function BedForm({ rooms, bed }: BedFormProps) {
               <p className="text-xs text-muted-foreground">
                 Use letters (A, B, C) or numbers (1, 2, 3) to identify beds
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="monthlyRent">Monthly Rent (₹) *</Label>
-              <Input
-                id="monthlyRent"
-                type="number"
-                placeholder="8000"
-                {...register('monthlyRent')}
-                error={errors.monthlyRent?.message}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="securityDeposit">Security Deposit (₹)</Label>
-              <Input
-                id="securityDeposit"
-                type="number"
-                placeholder="16000"
-                {...register('securityDeposit')}
-                error={errors.securityDeposit?.message}
-              />
             </div>
 
             <div className="space-y-2">

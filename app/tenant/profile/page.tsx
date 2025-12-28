@@ -142,7 +142,7 @@ export default async function TenantProfilePage() {
                 <div>
                   <p className="font-medium">Monthly Rent</p>
                   <p className="text-lg font-semibold">
-                    ₹{Number(tenant.bed.monthlyRent).toLocaleString()}
+                    ₹{Number(tenant.bed.room.monthlyRent || 0).toLocaleString()}
                   </p>
                 </div>
               </>

@@ -263,8 +263,8 @@ export default async function RoomDetailPage({
                   return (
                     <TableRow key={bed.id}>
                       <TableCell className="font-medium">Bed {bed.bedNumber}</TableCell>
-                      <TableCell>{formatCurrency(Number(bed.monthlyRent))}</TableCell>
-                      <TableCell>{formatCurrency(Number(bed.securityDeposit))}</TableCell>
+                      <TableCell>{formatCurrency(Number(room.monthlyRent || 0))}</TableCell>
+                      <TableCell>{formatCurrency(Number(room.securityDeposit || 0))}</TableCell>
                       <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>

@@ -29,7 +29,12 @@ git push -u origin main
 2. Create a new project
 3. Go to **Settings** → **Database**
 4. Copy the **Connection string** (URI format)
-   - It will look like: `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+   - **For Development/Migrations**: Use Session Mode (port 5432)
+     - `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+   - **For Production/Serverless**: Use Transaction Mode (port 6543) with `?pgbouncer=true`
+     - `postgresql://postgres:[YOUR-PASSWORD]@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true`
+
+**📖 See [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) for detailed configuration guide.**
 
 ### Option B: Neon (Recommended - Serverless PostgreSQL)
 
@@ -221,8 +226,11 @@ Vercel will automatically set these up based on your `vercel.json` configuration
 **Solutions:**
 1. Verify `DATABASE_URL` is correct in Vercel environment variables
 2. Check if your database allows connections from Vercel IPs
-3. For Supabase: Check connection pooling settings
-4. Ensure SSL is enabled in connection string (add `?sslmode=require`)
+3. For Supabase: 
+   - Use **Transaction Mode (port 6543)** with `?pgbouncer=true` for serverless
+   - Use **Session Mode (port 5432)** for migrations
+   - See [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) for details
+4. Ensure SSL is enabled in connection string (add `?sslmode=require` if not using Supabase pooler)
 
 ### NextAuth Errors
 

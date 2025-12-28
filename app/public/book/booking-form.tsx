@@ -30,12 +30,13 @@ interface Bed {
     id: string;
     roomNumber: string;
     hasAc: boolean;
-    acCharge?: number | null;
     multiBedPricing?: Record<string, number> | null;
     roomType: string;
     property: {
       id: string;
       name: string;
+      acMonthlyRent?: number | null;
+      acSecurityDeposit?: number | null;
     };
   };
 }
@@ -81,9 +82,12 @@ export function BookingForm({ beds, selectedBedId }: BookingFormProps) {
       }
     }
 
-    // Add AC charge if selected
-    const acCharge = acSelected && selectedRoom.hasAc && selectedRoom.acCharge
-      ? Number(selectedRoom.acCharge) * selectedBedIds.length
+    // Add AC charge if selected (from property level)
+    const selectedProperty = selectedRoomId
+      ? beds.find((b) => b.room.id === selectedRoomId)?.room.property
+      : null;
+    const acCharge = acSelected && selectedRoom.hasAc && selectedProperty?.acMonthlyRent
+      ? Number(selectedProperty.acMonthlyRent) * selectedBedIds.length
       : 0;
 
     return {
@@ -262,11 +266,16 @@ export function BookingForm({ beds, selectedBedId }: BookingFormProps) {
                   <Label htmlFor="acSelected" className="cursor-pointer flex items-center gap-2">
                     <Snowflake className="h-4 w-4" />
                     Use Air Conditioning
-                    {selectedRoom.acCharge && (
-                      <span className="text-sm text-muted-foreground">
-                        (+{formatCurrency(Number(selectedRoom.acCharge))} per bed/month)
-                      </span>
-                    )}
+                    {(() => {
+                      const selectedProperty = selectedRoomId
+                        ? beds.find((b) => b.room.id === selectedRoomId)?.room.property
+                        : null;
+                      return selectedProperty?.acMonthlyRent && (
+                        <span className="text-sm text-muted-foreground">
+                          (+{formatCurrency(Number(selectedProperty.acMonthlyRent))} per bed/month)
+                        </span>
+                      );
+                    })()}
                   </Label>
                 </div>
               </div>

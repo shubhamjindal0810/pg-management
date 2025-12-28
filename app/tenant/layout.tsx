@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { TenantSidebar } from '@/components/tenant/sidebar';
+import { NavigationLoading } from '@/components/navigation-loading';
 
 export default async function TenantLayout({
   children,
@@ -38,6 +39,7 @@ export default async function TenantLayout({
           {children}
         </main>
       </div>
+      <NavigationLoading />
     </div>
   );
 }

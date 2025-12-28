@@ -14,21 +14,21 @@ interface RoomBookingCardProps {
     roomNumber: string;
     roomType: string;
     hasAc: boolean;
-    acCharge: number | null;
+    monthlyRent: number;
     multiBedPricing: Record<string, number> | null;
     beds: Array<{
       id: string;
       bedNumber: string;
-      monthlyRent: number;
-      securityDeposit: number;
     }>;
+    property: {
+      acMonthlyRent: number | null;
+      acSecurityDeposit: number | null;
+    };
   };
 }
 
 export function RoomBookingCard({ room }: RoomBookingCardProps) {
-  const minRent = Math.min(...room.beds.map((b) => Number(b.monthlyRent)));
-  const maxRent = Math.max(...room.beds.map((b) => Number(b.monthlyRent)));
-  const avgRent = room.beds.reduce((sum, b) => sum + Number(b.monthlyRent), 0) / room.beds.length;
+  const rent = Number(room.monthlyRent);
 
   return (
     <Card className="border-2 shadow-lg">
@@ -36,9 +36,7 @@ export function RoomBookingCard({ room }: RoomBookingCardProps) {
         <div className="flex items-baseline justify-between">
           <div>
             <CardTitle className="text-2xl">
-              {minRent === maxRent
-                ? formatCurrency(avgRent)
-                : `${formatCurrency(minRent)} - ${formatCurrency(maxRent)}`}
+              {formatCurrency(rent)}
             </CardTitle>
             <p className="text-sm text-muted-foreground">per bed per month</p>
           </div>
@@ -67,8 +65,8 @@ export function RoomBookingCard({ room }: RoomBookingCardProps) {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">AC Available</span>
               <span className="font-medium">
-                {room.acCharge
-                  ? `+${formatCurrency(Number(room.acCharge))}/bed/month`
+                {room.property.acMonthlyRent
+                  ? `+${formatCurrency(Number(room.property.acMonthlyRent))}/bed/month`
                   : 'Included'}
               </span>
             </div>

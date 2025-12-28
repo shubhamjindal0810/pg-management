@@ -1,6 +1,7 @@
 import { PublicHeader } from '@/components/public/header';
 import { PublicFooter } from '@/components/public/footer';
 import { WhatsAppFloat } from '@/components/public/whatsapp-float';
+import { NavigationLoading } from '@/components/navigation-loading';
 import { db } from '@/lib/db';
 
 async function getProperty() {
@@ -31,6 +32,7 @@ export default async function PublicLayout({
       <main className="flex-1">{children}</main>
       <PublicFooter />
       <WhatsAppFloat whatsappLink={property?.whatsapp} phone={property?.phone} />
+      <NavigationLoading />
     </div>
   );
 }

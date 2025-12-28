@@ -27,11 +27,7 @@ async function getTenant(id: string) {
         select: { name: true, phone: true, email: true },
       },
       bed: {
-        select: {
-          id: true,
-          bedNumber: true,
-          monthlyRent: true,
-          securityDeposit: true,
+        include: {
           room: {
             include: {
               property: {
@@ -110,7 +106,7 @@ export default async function TenantDetailPage({
                   noticePeriodDays: tenant.noticePeriodDays,
                   bed: tenant.bed
                     ? {
-                        securityDeposit: Number(tenant.bed.securityDeposit),
+                        securityDeposit: Number(tenant.bed.room.securityDeposit || 0),
                       }
                     : null,
                   securityDeposits: tenant.securityDeposits.map((d) => ({
@@ -258,7 +254,7 @@ export default async function TenantDetailPage({
                 <div>
                   <p className="font-medium">Monthly Rent</p>
                   <p className="text-lg font-semibold">
-                    ₹{Number(tenant.bed.monthlyRent).toLocaleString()}
+                    ₹{Number(tenant.bed.room.monthlyRent || 0).toLocaleString()}
                   </p>
                 </div>
               </>
@@ -500,7 +496,10 @@ export default async function TenantDetailPage({
           })),
           bed: tenant.bed
             ? {
-                securityDeposit: Number(tenant.bed.securityDeposit),
+                securityDeposit: Number(tenant.bed.room.securityDeposit || 0),
+                room: {
+                  securityDeposit: Number(tenant.bed.room.securityDeposit || 0),
+                },
               }
             : null,
         }}

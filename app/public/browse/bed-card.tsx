@@ -9,8 +9,6 @@ interface BedCardProps {
   bed: {
     id: string;
     bedNumber: string;
-    monthlyRent: number;
-    securityDeposit: number;
     images?: string[] | null;
     description?: string | null;
     room: {
@@ -20,6 +18,8 @@ interface BedCardProps {
       hasAc: boolean;
       hasAttachedBath: boolean;
       floor: number;
+      monthlyRent: number;
+      securityDeposit: number;
       images?: string[] | null;
       property: {
         id: string;
@@ -143,13 +143,13 @@ export function BedCard({ bed }: BedCardProps) {
         {/* Price */}
         <div className="mb-4 flex items-baseline justify-between">
           <div>
-            <p className="text-2xl font-bold">{formatCurrency(Number(bed.monthlyRent))}</p>
+            <p className="text-2xl font-bold">{formatCurrency(Number(bed.room.monthlyRent))}</p>
             <p className="text-xs text-muted-foreground">per month</p>
           </div>
-          {Number(bed.securityDeposit) > 0 && (
+          {Number(bed.room.securityDeposit) > 0 && (
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Security Deposit</p>
-              <p className="text-sm font-medium">{formatCurrency(Number(bed.securityDeposit))}</p>
+              <p className="text-sm font-medium">{formatCurrency(Number(bed.room.securityDeposit))}</p>
             </div>
           )}
         </div>

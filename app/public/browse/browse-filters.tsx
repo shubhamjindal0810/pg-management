@@ -21,6 +21,7 @@ interface BrowseFiltersProps {
     hasAttachedBath?: boolean;
     roomType?: string;
     hasAc?: boolean;
+    hasBalcony?: boolean;
     checkInDate?: string;
     maxRent?: number;
   };
@@ -36,6 +37,7 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
     hasAttachedBath: initialFilters.hasAttachedBath ?? false,
     roomType: initialFilters.roomType || 'all',
     hasAc: initialFilters.hasAc ?? false,
+    hasBalcony: initialFilters.hasBalcony ?? false,
     checkInDate: initialFilters.checkInDate || '',
     maxRent: initialFilters.maxRent || 50000,
   });
@@ -52,6 +54,9 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
       }
       if (filters.hasAc) {
         params.set('hasAc', 'true');
+      }
+      if (filters.hasBalcony) {
+        params.set('hasBalcony', 'true');
       }
       if (filters.checkInDate) {
         params.set('checkInDate', filters.checkInDate);
@@ -70,6 +75,7 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
       hasAttachedBath: false,
       roomType: 'all',
       hasAc: false,
+      hasBalcony: false,
       checkInDate: '',
       maxRent: 50000,
     });
@@ -137,6 +143,15 @@ export function BrowseFilters({ initialFilters, propertyAmenities }: BrowseFilte
                 className="h-4 w-4 rounded border-gray-300"
               />
               <span className="text-sm">Air Conditioned</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={filters.hasBalcony}
+                onChange={(e) => setFilters({ ...filters, hasBalcony: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm">Balcony</span>
             </label>
           </div>
         </div>

@@ -11,7 +11,10 @@ async function getActiveTenants() {
       bed: {
         include: {
           room: {
-            select: { roomNumber: true },
+            select: { 
+              roomNumber: true,
+              monthlyRent: true,
+            },
           },
         },
       },
@@ -33,7 +36,7 @@ export default async function NewBillPage() {
     name: t.user.name,
     room: t.bed?.room.roomNumber || '',
     bed: t.bed?.bedNumber || '',
-    rent: t.bed ? Number(t.bed.monthlyRent) : 0,
+    rent: t.bed?.room ? Number(t.bed.room.monthlyRent || 0) : 0,
   }));
 
   return (

@@ -121,7 +121,7 @@ export default async function BillingPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Receipt className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="mb-4 text-muted-foreground">No bills created yet</p>
-            <Link href="/dashboard/billing/new">
+            <Link href="/billing/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Create First Bill

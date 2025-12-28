@@ -9,7 +9,8 @@ export async function createBooking(data: {
   email?: string;
   phone: string;
   requestedCheckin: string;
-  durationMonths: number;
+  durationMonths?: number;
+  durationDays?: number;
   acSelected?: boolean;
   breakfastSelected?: boolean;
   lunchSelected?: boolean;
@@ -51,7 +52,7 @@ export async function createBooking(data: {
       email: data.email || null,
       phone: data.phone,
       requestedCheckin: new Date(data.requestedCheckin),
-      durationMonths: data.durationMonths,
+      durationMonths: data.durationMonths || (data.durationDays ? Math.ceil(data.durationDays / 30) : 1),
       acSelected: data.acSelected || false,
       breakfastSelected: data.breakfastSelected || false,
       lunchSelected: data.lunchSelected || false,

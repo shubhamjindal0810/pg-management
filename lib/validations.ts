@@ -77,6 +77,15 @@ export const propertySchema = z.object({
     z.number().min(0).optional()
   ),
   dinnerMenu: z.string().optional(),
+  // AC Configuration (Property Level)
+  acMonthlyRent: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0).optional()
+  ),
+  acSecurityDeposit: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0).optional()
+  ),
 });
 
 export type PropertyInput = z.infer<typeof propertySchema>;
@@ -89,7 +98,19 @@ export const roomSchema = z.object({
   roomType: z.enum(['single', 'double', 'triple', 'dormitory']),
   hasAc: z.boolean(),
   hasAttachedBath: z.boolean(),
-  acCharge: z.coerce.number().min(0).default(0),
+  hasBalcony: z.boolean(),
+  monthlyRent: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Monthly rent cannot be negative').optional()
+  ),
+  securityDeposit: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? 0 : Number(val)),
+    z.number().min(0).default(0)
+  ),
+  dailyPrice: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Daily price cannot be negative').optional()
+  ),
   description: z.string().optional(),
   amenities: z.array(z.string()).optional(),
 });
@@ -100,8 +121,6 @@ export type RoomInput = z.infer<typeof roomSchema>;
 export const bedSchema = z.object({
   roomId: z.string().min(1, 'Room is required'),
   bedNumber: z.string().min(1, 'Bed number is required'),
-  monthlyRent: z.coerce.number().min(0),
-  securityDeposit: z.coerce.number().min(0),
   status: z.enum(['AVAILABLE', 'OCCUPIED', 'RESERVED', 'MAINTENANCE']),
   description: z.string().optional(),
 });

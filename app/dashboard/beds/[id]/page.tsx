@@ -103,14 +103,16 @@ export default async function BedDetailPage({
 
             <div>
               <p className="font-medium">Monthly Rent</p>
-              <p className="text-lg font-semibold">{formatCurrency(Number(bed.monthlyRent))}</p>
+              <p className="text-lg font-semibold">{formatCurrency(Number(bed.room.monthlyRent || 0))}</p>
+              <p className="text-xs text-muted-foreground">Room-level pricing</p>
             </div>
 
             <div>
               <p className="font-medium">Security Deposit</p>
               <p className="text-lg font-semibold">
-                {formatCurrency(Number(bed.securityDeposit))}
+                {formatCurrency(Number(bed.room.securityDeposit || 0))}
               </p>
+              <p className="text-xs text-muted-foreground">Room-level pricing</p>
             </div>
 
             <div>

@@ -32,7 +32,11 @@ export async function GET(request: Request) {
         bedId: { not: null },
       },
       include: {
-        bed: true,
+        bed: {
+          include: {
+            room: true,
+          },
+        },
       },
     });
 
@@ -60,7 +64,7 @@ export async function GET(request: Request) {
           continue;
         }
 
-        const rent = Number(tenant.bed.monthlyRent);
+        const rent = Number(tenant.bed.room.monthlyRent || 0);
         const dueDate = new Date(firstDayOfMonth);
         dueDate.setDate(dueDate.getDate() + 5); // Due date is 5th of the month
 

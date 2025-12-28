@@ -36,6 +36,8 @@ export async function createProperty(data: PropertyInput) {
       dinnerEnabled: validated.dinnerEnabled || false,
       dinnerPrice: validated.dinnerPrice || null,
       dinnerMenu: validated.dinnerMenu?.trim() || null,
+      acMonthlyRent: validated.acMonthlyRent || null,
+      acSecurityDeposit: validated.acSecurityDeposit || null,
     },
   });
 
@@ -76,11 +78,14 @@ export async function updateProperty(id: string, data: PropertyInput) {
       dinnerEnabled: validated.dinnerEnabled || false,
       dinnerPrice: validated.dinnerPrice || null,
       dinnerMenu: validated.dinnerMenu?.trim() || null,
+      acMonthlyRent: validated.acMonthlyRent || null,
+      acSecurityDeposit: validated.acSecurityDeposit || null,
     },
   });
 
   revalidatePath('/dashboard/properties');
   revalidatePath(`/dashboard/properties/${id}`);
+  revalidatePath(`/dashboard/properties/${id}/edit`);
   revalidatePath('/public');
 }
 

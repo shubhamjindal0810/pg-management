@@ -15,16 +15,20 @@ export async function createBill(data: {
 }) {
   const session = await getServerSession(authOptions);
   
-  // Get tenant's bed for rent amount
+  // Get tenant's bed and room for rent amount
   const tenant = await db.tenant.findUnique({
     where: { id: data.tenantId },
     include: {
-      bed: true,
+      bed: {
+        include: {
+          room: true,
+        },
+      },
     },
   });
 
-  if (!tenant || !tenant.bed) {
-    throw new Error('Tenant or bed not found');
+  if (!tenant || !tenant.bed || !tenant.bed.room) {
+    throw new Error('Tenant, bed, or room not found');
   }
 
   const billingMonth = new Date(data.billingMonth);
@@ -43,7 +47,7 @@ export async function createBill(data: {
     throw new Error('Bill already exists for this month');
   }
 
-  const rent = Number(tenant.bed.monthlyRent);
+  const rent = Number(tenant.bed.room.monthlyRent || 0);
 
   const bill = await db.bill.create({
     data: {

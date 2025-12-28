@@ -26,11 +26,11 @@ import { z } from 'zod';
 interface Bed {
   id: string;
   bedNumber: string;
-  monthlyRent: number;
-  securityDeposit: number;
   room: {
     roomNumber: string;
     hasAc: boolean;
+    monthlyRent: number;
+    securityDeposit: number;
     property: {
       name: string;
     };
@@ -186,7 +186,7 @@ export function TenantForm({ availableBeds, tenantId, initialData }: TenantFormP
                       </div>
                       {beds.map((bed) => (
                         <SelectItem key={bed.id} value={bed.id} disabled={isEditMode}>
-                          Bed {bed.bedNumber} - {formatCurrency(Number(bed.monthlyRent))}/month
+                          Bed {bed.bedNumber} - {formatCurrency(Number(bed.room.monthlyRent || 0))}/month
                           {bed.room.hasAc && ' (AC)'}
                         </SelectItem>
                       ))}
@@ -206,11 +206,11 @@ export function TenantForm({ availableBeds, tenantId, initialData }: TenantFormP
                   </p>
                   <p>
                     <span className="text-muted-foreground">Monthly Rent:</span>{' '}
-                    {formatCurrency(Number(selectedBed.monthlyRent))}
+                    {formatCurrency(Number(selectedBed.room.monthlyRent || 0))}
                   </p>
                   <p>
                     <span className="text-muted-foreground">Security Deposit:</span>{' '}
-                    {formatCurrency(Number(selectedBed.securityDeposit))}
+                    {formatCurrency(Number(selectedBed.room.securityDeposit || 0))}
                   </p>
                   <p>
                     <span className="text-muted-foreground">Features:</span>{' '}

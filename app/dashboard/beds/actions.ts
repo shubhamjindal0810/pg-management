@@ -13,8 +13,6 @@ export async function createBed(data: BedInput & { images?: string[] }) {
     data: {
       roomId: validated.roomId,
       bedNumber: validated.bedNumber,
-      monthlyRent: validated.monthlyRent,
-      securityDeposit: validated.securityDeposit,
       status: validated.status as BedStatus,
       description: validated.description || null,
       images: data.images && data.images.length > 0 ? data.images : undefined,
@@ -35,8 +33,6 @@ export async function updateBed(id: string, data: BedInput & { images?: string[]
     data: {
       roomId: validated.roomId,
       bedNumber: validated.bedNumber,
-      monthlyRent: validated.monthlyRent,
-      securityDeposit: validated.securityDeposit,
       status: validated.status as BedStatus,
       description: validated.description || null,
       images: data.images !== undefined ? data.images : undefined,
