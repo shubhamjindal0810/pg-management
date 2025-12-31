@@ -104,7 +104,7 @@ export function RoomBookingCard({ room }: RoomBookingCardProps) {
         </div>
 
         {/* CTA Button */}
-        <Link href={`/public/book?roomId=${room.id}`} className="block">
+        <Link href={`/book?roomId=${room.id}`} className="block">
           <Button size="lg" className="w-full">
             Reserve Now
           </Button>

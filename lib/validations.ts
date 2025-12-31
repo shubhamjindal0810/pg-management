@@ -86,6 +86,7 @@ export const propertySchema = z.object({
     (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
     z.number().min(0).optional()
   ),
+  images: z.array(z.string()).optional(),
 });
 
 export type PropertyInput = z.infer<typeof propertySchema>;

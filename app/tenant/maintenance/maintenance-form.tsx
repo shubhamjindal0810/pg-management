@@ -61,15 +61,24 @@ export function MaintenanceRequestForm({ roomId }: MaintenanceRequestFormProps) 
 
     setIsLoading(true);
     try {
-      // Convert images to base64 for now (in production, upload to cloud storage)
-      const imageData = await Promise.all(
-        images.map((file) => {
-          return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+      // Upload images to Vercel Blob
+      const imageUrls = await Promise.all(
+        images.map(async (file) => {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
           });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to upload image');
+          }
+
+          const data = await response.json();
+          return data.url;
         })
       );
 
@@ -78,7 +87,7 @@ export function MaintenanceRequestForm({ roomId }: MaintenanceRequestFormProps) 
         category,
         priority,
         description,
-        images: imageData,
+        images: imageUrls,
       });
 
       toast.success('Maintenance request submitted successfully');

@@ -17,7 +17,17 @@ import { BookingActions } from './booking-actions';
 
 async function getBookings() {
   return db.booking.findMany({
-    include: {
+    select: {
+      id: true,
+      bedId: true,
+      name: true,
+      email: true,
+      phone: true,
+      requestedCheckin: true,
+      durationMonths: true,
+      advanceAmount: true,
+      status: true,
+      createdAt: true,
       bed: {
         include: {
           room: {

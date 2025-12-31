@@ -73,7 +73,7 @@ export async function approveBooking(bookingId: string, adminNotes?: string) {
   });
 
   revalidatePath('/dashboard/bookings');
-  revalidatePath('/public');
+  revalidatePath('/');
 }
 
 export async function rejectBooking(bookingId: string, adminNotes?: string) {

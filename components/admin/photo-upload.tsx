@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,22 +30,30 @@ export function PhotoUpload({ images, onImagesChange, maxImages = 10 }: PhotoUpl
     setIsUploading(true);
 
     try {
-      // Convert images to base64 (in production, upload to cloud storage)
-      const newImages = await Promise.all(
-        files.map((file) => {
-          return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        })
-      );
+      // Upload images to Vercel Blob
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
 
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to upload image');
+        }
+
+        const data = await response.json();
+        return data.url;
+      });
+
+      const newImages = await Promise.all(uploadPromises);
       onImagesChange([...images, ...newImages]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading images:', error);
-      alert('Failed to upload images');
+      alert(error.message || 'Failed to upload images');
     } finally {
       setIsUploading(false);
     }
@@ -76,10 +85,12 @@ export function PhotoUpload({ images, onImagesChange, maxImages = 10 }: PhotoUpl
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {images.map((image, index) => (
             <div key={index} className="group relative aspect-square">
-              <img
+              <Image
                 src={image}
                 alt={`Photo ${index + 1}`}
-                className="h-full w-full rounded-lg object-cover border"
+                fill
+                className="rounded-lg object-cover border"
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
               <div className="absolute inset-0 flex items-center justify-center gap-1 rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                 {index > 0 && (

@@ -103,11 +103,11 @@ export default async function BookPage({
     });
 
     if (bed) {
-      redirect(`/public/book?roomId=${bed.roomId}&bedId=${params.bedId}`);
+      redirect(`/book?roomId=${bed.roomId}&bedId=${params.bedId}`);
     }
   }
 
   // No room or bed specified - redirect to browse
-  redirect('/public/browse');
+  redirect('/browse');
 }
 

@@ -155,7 +155,7 @@ export function BedCard({ bed }: BedCardProps) {
         </div>
 
         {/* Action */}
-        <Link href={`/public/rooms/${bed.room.id}`} className="block">
+        <Link href={`/rooms/${bed.room.id}`} className="block">
           <Button className="w-full">View Details & Book</Button>
         </Link>
       </CardContent>

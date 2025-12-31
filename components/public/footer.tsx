@@ -54,7 +54,7 @@ export async function PublicFooter() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/public"
+                  href="/"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Home
@@ -62,7 +62,7 @@ export async function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/public/browse"
+                  href="/browse"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Browse Rooms
@@ -70,7 +70,7 @@ export async function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/public/book"
+                  href="/book"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Book Now

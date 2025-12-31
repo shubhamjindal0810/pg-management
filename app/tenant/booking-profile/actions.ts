@@ -75,7 +75,7 @@ export async function uploadBookingDocument(data: {
   tenantId: string;
   documentType: DocumentType;
   documentNumber: string;
-  fileData: string; // Base64 encoded
+  fileData: string; // Vercel Blob URL
   fileName: string;
 }) {
   const session = await getServerSession(authOptions);
@@ -105,8 +105,8 @@ export async function uploadBookingDocument(data: {
     throw new Error('No approved booking found');
   }
 
-  // In production, upload to cloud storage
-  const fileUrl = data.fileData; // This should be the cloud storage URL
+  // fileData is now a Vercel Blob URL (not base64)
+  const fileUrl = data.fileData;
 
   await db.tenantDocument.create({
     data: {

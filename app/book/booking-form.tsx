@@ -167,7 +167,7 @@ export function BookingForm({ beds, selectedBedId }: BookingFormProps) {
         notes: data.notes || undefined,
       });
       toast.success('Booking request submitted successfully! We will contact you soon.');
-      router.push('/public/book/success');
+      router.push('/book/success');
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit booking request');
     } finally {

@@ -19,7 +19,7 @@ async function getProperty() {
   });
 }
 
-export default async function PublicLayout({
+export default async function BrowseLayout({
   children,
 }: {
   children: React.ReactNode;

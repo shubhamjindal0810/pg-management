@@ -62,7 +62,7 @@ export default async function RoomDetailPage({
             <p className="text-muted-foreground mb-4">
               All beds in this room are currently occupied.
             </p>
-            <a href="/public/browse" className="text-primary hover:underline">
+            <a href="/browse" className="text-primary hover:underline">
               Browse other rooms
             </a>
           </div>

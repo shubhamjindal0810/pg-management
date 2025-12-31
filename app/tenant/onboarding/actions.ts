@@ -10,7 +10,7 @@ export async function uploadDocument(data: {
   tenantId: string;
   documentType: DocumentType;
   documentNumber: string;
-  fileData: string; // Base64 encoded
+  fileData: string; // Vercel Blob URL
   fileName: string;
 }) {
   const session = await getServerSession(authOptions);
@@ -28,10 +28,8 @@ export async function uploadDocument(data: {
     throw new Error('Unauthorized');
   }
 
-  // In production, upload to cloud storage (S3, Cloudinary, etc.)
-  // For now, we'll store the base64 data
-  // You should replace this with actual file upload logic
-  const fileUrl = data.fileData; // This should be the cloud storage URL
+  // fileData is now a Vercel Blob URL (not base64)
+  const fileUrl = data.fileData;
 
   await db.tenantDocument.create({
     data: {

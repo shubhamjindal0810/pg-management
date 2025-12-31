@@ -76,7 +76,7 @@ export async function PublicHeader() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/public" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <span className="text-lg font-bold">PG</span>
@@ -88,19 +88,19 @@ export async function PublicHeader() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
-              href="/public"
+              href="/"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Home
             </Link>
             <Link
-              href="/public/browse"
+              href="/browse"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Browse Rooms
             </Link>
             <Link
-              href="/public/book"
+              href="/book"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Book Now

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { BrowseFilters } from './browse-filters';
-import { RoomCard } from '@/app/browse/room-card';
+import { RoomCard } from './room-card';
 import { PageHeader } from '@/components/dashboard/page-header';
 
 async function getAvailableRooms(filters?: {

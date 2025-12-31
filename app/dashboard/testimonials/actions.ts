@@ -20,7 +20,7 @@ export async function createTestimonial(data: TestimonialInput) {
   });
 
   revalidatePath('/dashboard/testimonials');
-  revalidatePath('/public');
+  revalidatePath('/');
   redirect(`/dashboard/testimonials`);
 }
 
@@ -40,7 +40,7 @@ export async function updateTestimonial(id: string, data: TestimonialInput) {
   });
 
   revalidatePath('/dashboard/testimonials');
-  revalidatePath('/public');
+  revalidatePath('/');
 }
 
 export async function deleteTestimonial(id: string) {
@@ -49,7 +49,7 @@ export async function deleteTestimonial(id: string) {
   });
 
   revalidatePath('/dashboard/testimonials');
-  revalidatePath('/public');
+  revalidatePath('/');
   redirect('/dashboard/testimonials');
 }
 
@@ -69,6 +69,6 @@ export async function toggleTestimonialStatus(id: string) {
   });
 
   revalidatePath('/dashboard/testimonials');
-  revalidatePath('/public');
+  revalidatePath('/');
 }
 

@@ -38,11 +38,12 @@ export async function createProperty(data: PropertyInput) {
       dinnerMenu: validated.dinnerMenu?.trim() || null,
       acMonthlyRent: validated.acMonthlyRent || null,
       acSecurityDeposit: validated.acSecurityDeposit || null,
+      images: (validated as any).images || [],
     },
   });
 
   revalidatePath('/dashboard/properties');
-  revalidatePath('/public');
+  revalidatePath('/');
   redirect(`/dashboard/properties/${property.id}`);
 }
 
@@ -80,13 +81,14 @@ export async function updateProperty(id: string, data: PropertyInput) {
       dinnerMenu: validated.dinnerMenu?.trim() || null,
       acMonthlyRent: validated.acMonthlyRent || null,
       acSecurityDeposit: validated.acSecurityDeposit || null,
+      images: (validated as any).images || [],
     },
   });
 
   revalidatePath('/dashboard/properties');
   revalidatePath(`/dashboard/properties/${id}`);
   revalidatePath(`/dashboard/properties/${id}/edit`);
-  revalidatePath('/public');
+  revalidatePath('/');
 }
 
 export async function deleteProperty(id: string) {

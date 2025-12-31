@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { BedDouble, Users, Droplets, Wind, MapPin, Home } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,15 +61,17 @@ export function RoomCard({ room }: RoomCardProps) {
           : '4+ sharing';
 
   return (
-    <Link href={`/public/rooms/${room.id}`} className="block">
+    <Link href={`/rooms/${room.id}`} className="block">
       <Card className="group overflow-hidden transition-shadow hover:shadow-lg cursor-pointer">
         {/* Image Gallery */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {primaryImage ? (
-          <img
+          <Image
             src={primaryImage}
             alt={`Room ${room.roomNumber}`}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            fill
+            className="object-cover transition-transform group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="flex h-full items-center justify-center">

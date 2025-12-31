@@ -6,9 +6,13 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
-  // Image optimization domains (add your storage domain later)
+  // Image optimization domains
   images: {
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
       {
         protocol: 'https',
         hostname: '**.amazonaws.com',

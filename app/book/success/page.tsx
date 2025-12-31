@@ -17,12 +17,12 @@ export default function BookingSuccessPage() {
                 it shortly. Our team will contact you soon to confirm your booking.
               </p>
               <div className="space-y-2">
-                <Link href="/public" className="block">
+                <Link href="/" className="block">
                   <Button variant="outline" className="w-full">
                     Back to Home
                   </Button>
                 </Link>
-                <Link href="/public/book" className="block">
+                <Link href="/book" className="block">
                   <Button className="w-full">Submit Another Request</Button>
                 </Link>
               </div>

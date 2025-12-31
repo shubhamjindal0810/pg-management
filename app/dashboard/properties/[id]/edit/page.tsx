@@ -60,6 +60,7 @@ export default async function EditPropertyPage({
           dinnerMenu: property.dinnerMenu,
           acMonthlyRent: property.acMonthlyRent ? Number(property.acMonthlyRent) : null,
           acSecurityDeposit: property.acSecurityDeposit ? Number(property.acSecurityDeposit) : null,
+          images: property.images as string[] | null,
         }}
       />
     </div>

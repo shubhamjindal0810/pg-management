@@ -104,18 +104,28 @@ export function BookingProfileForm({
 
     setIsAadhaarUploading(true);
     try {
-      const fileData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(aadhaarFile);
+      // Upload to Vercel Blob
+      const formData = new FormData();
+      formData.append('file', aadhaarFile);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload document');
+      }
+
+      const data = await response.json();
+      const fileUrl = data.url;
 
       await uploadBookingDocument({
         tenantId,
         documentType: 'AADHAR',
         documentNumber: aadhaarNumber,
-        fileData,
+        fileData: fileUrl,
         fileName: aadhaarFile.name,
       });
 
@@ -143,18 +153,28 @@ export function BookingProfileForm({
 
     setIsIdUploading(true);
     try {
-      const fileData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(idFile);
+      // Upload to Vercel Blob
+      const formData = new FormData();
+      formData.append('file', idFile);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload document');
+      }
+
+      const data = await response.json();
+      const fileUrl = data.url;
 
       await uploadBookingDocument({
         tenantId,
         documentType: idType as any,
         documentNumber: idNumber,
-        fileData,
+        fileData: fileUrl,
         fileName: idFile.name,
       });
 

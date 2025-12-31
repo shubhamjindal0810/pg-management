@@ -24,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
-import { createBooking } from '@/app/book/actions';
+import { createBooking } from './actions';
 
 interface BookingCheckoutProps {
   room: {
@@ -227,7 +227,7 @@ export function BookingCheckout({ room, selectedBedId }: BookingCheckoutProps) {
         notes: data.notes || undefined,
       });
       toast.success('Booking request submitted successfully! We will contact you soon.');
-      router.push('/public/book/success');
+      router.push('/book/success');
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit booking request');
     } finally {

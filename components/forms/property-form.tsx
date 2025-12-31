@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PhotoUpload } from '@/components/admin/photo-upload';
 import { propertySchema, type PropertyInput } from '@/lib/validations';
 import { createProperty, updateProperty } from '@/app/dashboard/properties/actions';
 
@@ -47,6 +48,7 @@ interface PropertyFormProps {
     dinnerMenu: string | null;
     acMonthlyRent: number | null;
     acSecurityDeposit: number | null;
+    images: string[] | null;
   };
 }
 
@@ -72,6 +74,9 @@ export function PropertyForm({ property }: PropertyFormProps) {
   const [newAmenity, setNewAmenity] = useState('');
   const [rules, setRules] = useState<string[]>((property?.rules as string[]) || []);
   const [newRule, setNewRule] = useState('');
+  const [images, setImages] = useState<string[]>(
+    (property?.images as string[]) || []
+  );
 
   const {
     register,
@@ -141,6 +146,7 @@ export function PropertyForm({ property }: PropertyFormProps) {
         ...data,
         amenities,
         rules,
+        images,
       };
 
       if (property) {
@@ -222,6 +228,25 @@ export function PropertyForm({ property }: PropertyFormProps) {
                 {...register('description')}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Property Images */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div>
+              <Label>Property Images</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Upload images of your property. The first image will be used as the hero image on the public website homepage.
+              </p>
+            </div>
+            <PhotoUpload
+              images={images}
+              onImagesChange={setImages}
+              maxImages={10}
+            />
           </div>
         </CardContent>
       </Card>

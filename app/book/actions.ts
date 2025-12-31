@@ -72,7 +72,7 @@ export async function createBooking(data: {
     },
   });
 
-  revalidatePath('/public');
-  revalidatePath('/public/book');
+  revalidatePath('/');
+  revalidatePath('/book');
 }
 
