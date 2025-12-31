@@ -42,7 +42,21 @@ const nextConfig = {
         hostname: '**.unsplash.com',
       },
     ],
+    // Optimize images for better performance - Vercel Next.js Image Optimization
+    formats: ['image/avif', 'image/webp'],
+    // More conservative device sizes for smaller images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    // Use default quality (75) for optimal size/quality balance
+    // Images will be automatically optimized by Vercel
   },
+  // Compress output
+  compress: true,
+  // Optimize production builds
+  swcMinify: true,
+  // Enable React strict mode for better performance
+  reactStrictMode: true,
 };
 
 module.exports = nextConfig;

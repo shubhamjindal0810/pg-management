@@ -1,0 +1,59 @@
+# Allow all search engines and crawlers to index public pages
+User-agent: *
+Allow: /
+Allow: /browse
+Allow: /book
+Allow: /rooms/
+Allow: /login
+
+# Block admin dashboard and tenant dashboard from being indexed
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+# Allow OpenAI and other AI crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+User-agent: CCBot
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /tenant
+Disallow: /tenant/
+Disallow: /api/
+
+# Sitemap location (if you create one later)
+# Sitemap: https://yourdomain.com/sitemap.xml
+

@@ -27,12 +27,49 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
-import { GoogleMapsSection } from '@/components/public/google-maps-section';
-import { TestimonialsCarousel } from '@/components/public/testimonials-carousel';
 import { PublicHeader } from '@/components/public/header';
 import { PublicFooter } from '@/components/public/footer';
-import { WhatsAppFloat } from '@/components/public/whatsapp-float';
 import { NavigationLoading } from '@/components/navigation-loading';
+import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
+// Lazy load heavy components that are below the fold
+const GoogleMapsSection = dynamic(() => import('@/components/public/google-maps-section').then(mod => ({ default: mod.GoogleMapsSection })), {
+  loading: () => <div className="py-20 bg-gradient-to-b from-white to-rose-50/30"><div className="container mx-auto px-4"><div className="text-center">Loading location...</div></div></div>,
+  ssr: true,
+});
+
+const TestimonialsCarousel = dynamic(() => import('@/components/public/testimonials-carousel').then(mod => ({ default: mod.TestimonialsCarousel })), {
+  loading: () => <div className="py-16 bg-white"><div className="container mx-auto px-4"><div className="text-center">Loading testimonials...</div></div></div>,
+  ssr: true,
+});
+
+const WhatsAppFloat = dynamic(() => import('@/components/public/whatsapp-float').then(mod => ({ default: mod.WhatsAppFloat })), {
+  ssr: false, // No need to SSR this floating button
+});
+
+export const metadata: Metadata = {
+  title: 'Aashiana PG for Women in Hyderabad',
+  description: 'Aashiana PG - Premium women\'s hostel and PG accommodation in Hyderabad. Safe, secure, and comfortable living spaces with modern amenities. Book your room today with flexible monthly and daily booking options. Features include WiFi, 24/7 security, housekeeping, meal services, and more.',
+  keywords: ['PG Hyderabad', 'Women PG Hyderabad', 'Aashiana PG', 'Hostel Hyderabad', 'PG for Women', 'Student Accommodation Hyderabad', 'Women Hostel', 'PG Booking Hyderabad', 'Safe PG Hyderabad', 'Affordable PG Hyderabad'],
+  openGraph: {
+    title: 'Aashiana PG for Women in Hyderabad',
+    description: 'Premium women\'s hostel and PG accommodation in Hyderabad. Safe, secure, and comfortable living spaces with modern amenities. Book your room today.',
+    type: 'website',
+    locale: 'en_IN',
+    siteName: 'Aashiana PG',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Aashiana PG for Women in Hyderabad',
+    description: 'Premium women\'s hostel and PG accommodation in Hyderabad. Safe, secure, and comfortable living spaces.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 async function getProperty() {
   const property = await db.property.findFirst({
@@ -42,12 +79,29 @@ async function getProperty() {
         { isActive: true },
       ],
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      images: true,
+      amenities: true,
       rooms: {
         where: { isActive: true },
-        include: {
+        select: {
+          id: true,
+          roomNumber: true,
+          images: true,
+          monthlyRent: true,
+          dailyPrice: true,
+          hasAc: true,
+          hasAttachedBath: true,
+          hasBalcony: true,
           beds: {
             where: { status: 'AVAILABLE' },
+            select: {
+              id: true,
+              bedNumber: true,
+            },
             orderBy: { bedNumber: 'asc' },
           },
         },
@@ -55,9 +109,33 @@ async function getProperty() {
       },
       testimonials: {
         where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          photo: true,
+          testimonial: true,
+          rating: true,
+        },
         orderBy: { createdAt: 'desc' },
         take: 10,
       },
+      // Include layout data in same query
+      whatsapp: true,
+      phone: true,
+      googleMapsLink: true,
+      latitude: true,
+      longitude: true,
+      address: true,
+      city: true,
+      state: true,
+      breakfastEnabled: true,
+      breakfastPrice: true,
+      lunchEnabled: true,
+      lunchPrice: true,
+      dinnerEnabled: true,
+      dinnerPrice: true,
+      acMonthlyRent: true,
+      acSecurityDeposit: true,
     },
   });
 
@@ -106,19 +184,6 @@ export default async function HomePage() {
   const propertyImages = (property.images as string[]) || [];
   const primaryImage = propertyImages[0] || '/placeholder-property.jpg';
   const amenities = (property.amenities as string[]) || [];
-
-  const propertyForLayout = await db.property.findFirst({
-    where: {
-      OR: [
-        { name: { contains: 'Ashiana', mode: 'insensitive' } },
-        { isActive: true },
-      ],
-    },
-    select: {
-      whatsapp: true,
-      phone: true,
-    },
-  });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -220,6 +285,7 @@ export default async function HomePage() {
                     height={400}
                     className="h-full w-full object-cover"
                     priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
               </div>
@@ -330,6 +396,8 @@ export default async function HomePage() {
                           alt={`Room ${room.roomNumber}`}
                           fill
                           className="object-cover hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                         <div className="absolute top-4 right-4">
                           <Badge className="bg-white/90 text-gray-900">
@@ -504,15 +572,17 @@ export default async function HomePage() {
 
       {/* Testimonials */}
       {property.testimonials.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Tenants Say</h2>
-              <p className="text-gray-600">Hear from our satisfied residents</p>
+        <Suspense fallback={<div className="py-16 bg-white"><div className="container mx-auto px-4"><div className="text-center">Loading testimonials...</div></div></div>}>
+          <section className="py-16 bg-white">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Tenants Say</h2>
+                <p className="text-gray-600">Hear from our satisfied residents</p>
+              </div>
+              <TestimonialsCarousel testimonials={property.testimonials} />
             </div>
-            <TestimonialsCarousel testimonials={property.testimonials} />
-          </div>
-        </section>
+          </section>
+        </Suspense>
       )}
 
       {/* CTA Section */}
@@ -540,19 +610,21 @@ export default async function HomePage() {
 
       {/* Google Maps */}
       {property.googleMapsLink && (
-        <GoogleMapsSection 
-          googleMapsLink={property.googleMapsLink}
-          latitude={property.latitude ? Number(property.latitude) : null}
-          longitude={property.longitude ? Number(property.longitude) : null}
-          propertyName={property.name}
-          address={property.address}
-          city={property.city}
-          state={property.state}
-        />
+        <Suspense fallback={<div className="py-20 bg-gradient-to-b from-white to-rose-50/30"><div className="container mx-auto px-4"><div className="text-center">Loading location...</div></div></div>}>
+          <GoogleMapsSection 
+            googleMapsLink={property.googleMapsLink}
+            latitude={property.latitude ? Number(property.latitude) : null}
+            longitude={property.longitude ? Number(property.longitude) : null}
+            propertyName={property.name}
+            address={property.address}
+            city={property.city}
+            state={property.state}
+          />
+        </Suspense>
       )}
       </main>
       <PublicFooter />
-      <WhatsAppFloat whatsappLink={propertyForLayout?.whatsapp} phone={propertyForLayout?.phone} />
+      <WhatsAppFloat whatsappLink={property.whatsapp} phone={property.phone} />
       <NavigationLoading />
     </div>
   );

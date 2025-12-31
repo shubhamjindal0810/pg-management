@@ -3,6 +3,18 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { NavigationLoading } from '@/components/navigation-loading';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin Dashboard',
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    noimageindex: true,
+  },
+};
 
 export default async function DashboardLayout({
   children,

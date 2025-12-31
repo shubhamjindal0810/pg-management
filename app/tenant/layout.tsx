@@ -4,6 +4,18 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { TenantSidebar } from '@/components/tenant/sidebar';
 import { NavigationLoading } from '@/components/navigation-loading';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Tenant Dashboard',
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nosnippet: true,
+    noimageindex: true,
+  },
+};
 
 export default async function TenantLayout({
   children,

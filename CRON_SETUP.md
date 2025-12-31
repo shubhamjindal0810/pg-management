@@ -10,17 +10,15 @@ This application includes automated billing and payment reminder systems that ne
 - **Method**: GET
 - **URL**: `https://yourdomain.com/api/cron/billing`
 
-### 2. Payment Reminders (`/api/cron/payment-reminders`)
-- **Purpose**: Sends payment reminders for bills due in the next 3 days
+### 2. Daily Maintenance (`/api/cron/daily`)
+- **Purpose**: Performs daily maintenance tasks:
+  - Marks bills as overdue if due date has passed
+  - Sends payment reminders for bills due in the next 3 days
 - **Schedule**: Run daily at 09:00 AM
 - **Method**: GET
-- **URL**: `https://yourdomain.com/api/cron/payment-reminders`
+- **URL**: `https://yourdomain.com/api/cron/daily`
 
-### 3. Mark Overdue (`/api/cron/mark-overdue`)
-- **Purpose**: Marks bills as overdue if due date has passed
-- **Schedule**: Run daily at 00:00 (midnight)
-- **Method**: GET
-- **URL**: `https://yourdomain.com/api/cron/mark-overdue`
+**Note**: This consolidated endpoint combines the previous `payment-reminders` and `mark-overdue` endpoints to reduce the number of cron jobs from 3 to 2 (fits within Vercel's free tier limit).
 
 ## Setup Options
 
@@ -36,16 +34,14 @@ Add to `vercel.json`:
       "schedule": "0 0 1 * *"
     },
     {
-      "path": "/api/cron/payment-reminders",
+      "path": "/api/cron/daily",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/mark-overdue",
-      "schedule": "0 0 * * *"
     }
   ]
 }
 ```
+
+**Total: 2 cron jobs** (fits within Vercel's free tier limit of 2 cron jobs)
 
 ### Option 2: External Cron Service
 
@@ -64,11 +60,8 @@ Add to your server's crontab:
 # Automated billing - 1st of each month at midnight
 0 0 1 * * curl https://yourdomain.com/api/cron/billing
 
-# Payment reminders - Daily at 9 AM
-0 9 * * * curl https://yourdomain.com/api/cron/payment-reminders
-
-# Mark overdue - Daily at midnight
-0 0 * * * curl https://yourdomain.com/api/cron/mark-overdue
+# Daily maintenance - Daily at 9 AM (marks overdue + sends reminders)
+0 9 * * * curl https://yourdomain.com/api/cron/daily
 ```
 
 ## Security
@@ -95,5 +88,5 @@ Currently, payment reminders are logged to the console. To implement actual noti
 3. **WhatsApp**: Use WhatsApp Business API
 4. **Push Notifications**: For tenant app
 
-Update the reminder logic in `/app/api/cron/payment-reminders/route.ts` to send actual notifications.
+Update the reminder logic in `/app/api/cron/daily/route.ts` to send actual notifications.
 

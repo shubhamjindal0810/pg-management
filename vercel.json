@@ -5,12 +5,8 @@
       "schedule": "0 0 1 * *"
     },
     {
-      "path": "/api/cron/payment-reminders",
+      "path": "/api/cron/daily",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/mark-overdue",
-      "schedule": "0 0 * * *"
     }
   ]
 }
